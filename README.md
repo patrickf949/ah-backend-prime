@@ -7,6 +7,51 @@ by leveraging the modern web.
 
 ---
 
+## Setup
+
+Follow this step by step process to setup the application locally. This includes:
+
+### Dependencies
+
+Install the following software requirements:
+
+- python3
+- PostgreSQL
+
+### Getting started
+
+Clone the repository by running the following command:
+
+- `$ git clone https://github.com/andela/ah-backend-prime.git`
+
+Change to the application directory and create a virtual environment using the command:
+
+- `$ virtualenv venv`
+
+Activate the virtual environment
+
+- `$ source venv/bin/activate `
+
+Install dependencies using:
+
+- `$ pip install -r requirements.txt`
+
+Included is a .env_sample file in the root of the project directory.
+
+Create a .env file in the root of the project directory with parameters as shown in the .env_sample
+
+Source the .env file
+
+Run migrations for the database using the command:
+
+- `$ python manage.py migrate`
+
+Run the application using:
+
+- `$ python manage.py runserver`
+
+---
+
 ## API Spec
 The preferred JSON object to be returned by the API should be structured as follows:
 
