@@ -1,0 +1,28 @@
+{
+  "addons": [
+    "heroku-postgresql"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "description": "Setup and Deployment of Heroku pipelines to Authors Heaven",
+  "env": {
+    "SECRET_KEY": {
+      "required": true
+    },
+    "DATABASE_URL": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "name": "ah-backend-prime",
+  "scripts": {
+  },
+  "stack": "heroku-18"
+}
