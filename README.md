@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/andela/ah-backend-prime.svg?branch=develop)](https://travis-ci.org/andela/ah-backend-prime)
 Authors Haven - A Social platform for the creative at heart.
 =======
 
