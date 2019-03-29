@@ -16,11 +16,14 @@ Including another URLconf
 
 from django.urls import path, include
 from django.contrib import admin
+from rest_framework_swagger.views import get_swagger_view
+
+schema_view = get_swagger_view(title='Authors Heaven')
 
 app_name = "authors-haven" 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
+    path('swagger-docs/', schema_view),
     path('api/', include('authors.apps.authentication.urls')),
 ]
 

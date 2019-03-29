@@ -15,6 +15,7 @@ import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -39,7 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'rest_framework',
-
+    'rest_framework_swagger',
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
@@ -140,6 +141,16 @@ AUTH_USER_MODEL = 'authentication.User'
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'authors.apps.core.exceptions.core_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'error'
+}
+
+SWAGGER_SETTINGS = {
+   'SECURITY_DEFINITIONS': {
+       'api_key': {
+           'type': 'apiKey',
+           'in': 'header',
+           'name': 'Authorization'
+       }
+   },
 }
 
 django_heroku.settings(locals())
