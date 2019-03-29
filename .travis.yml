@@ -14,8 +14,13 @@ before_script:
 install:
   - pip install -r requirements.txt
   - pip install coverage
+  - pip install coveralls
  
 script:
   - python manage.py test
+  - coverage run --source='authors/apps' manage.py test && coverage report
 notifications:
   slack: andela:vasKtyE0HR7gacZ27GXkiVLD
+
+after_success:
+  - coveralls

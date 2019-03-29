@@ -1,4 +1,8 @@
 [![Build Status](https://travis-ci.org/andela/ah-backend-prime.svg?branch=develop)](https://travis-ci.org/andela/ah-backend-prime)
+[![Coverage Status](https://coveralls.io/repos/github/andela/ah-backend-prime/badge.svg?branch=ch-integrate-coveralls164798285)](https://coveralls.io/github/andela/ah-backend-prime?branch=ch-integrate-coveralls164798285)
+
+---
+
 Authors Haven - A Social platform for the creative at heart.
 =======
 
