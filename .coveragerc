@@ -4,6 +4,7 @@ omit =
     */
     */tests/*
     */authentication/backends.py
+    */authentication/urls.py
     */exceptions.py
     */migrations/*
     */wsgi.py

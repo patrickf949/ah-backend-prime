@@ -26,59 +26,59 @@ class UserRegisterTest(BaseTest):
         test user registration valid credentialsß
 
         """
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=VALID_USER_DATA,
             format='json'
         )
-        self.assertEquals(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(self.response.data["username"], "anyatijude")
-        self.assertEquals(self.response.data["email"], "anyatijude@glo.com")
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(response.data["username"], "anyatijude")
+        self.assertEquals(response.data["email"], "anyatijude@glo.com")
 
     def test_empty_username(self):
         """
         test user registration without username
 
         """
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=EMPTY_USERNAME,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["username"], "Username should not be left empty")
+            response.data["errors"]["username"], "Username should not be left empty")
 
     def test_invalid_username(self):
         """
         test user registration with invalid username
 
         """
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=INVALID_USERNAME,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["username"], "Username should not be less than 4 characters")
+            response.data["errors"]["username"], "Username should not be less than 4 characters")
 
     def test_empty_email(self):
         """
         test user registration without email
 
         """
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=EMPTY_EMAIL,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["email"], "Email should not be left empty")
+            response.data["errors"]["email"], "Email should not be left empty")
 
     def test_empty_password(self):
         """
@@ -86,15 +86,15 @@ class UserRegisterTest(BaseTest):
 
         """
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=EMPTY_PASSWORD,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["password"], "Please provide the password")
+            response.data["errors"]["password"], "Please provide the password")
 
     def test_empty_space_username(self):
         """
@@ -102,15 +102,15 @@ class UserRegisterTest(BaseTest):
 
         """
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=EMPTY_SPACE_USERNAME,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["username"], "Username should not contain any spaces")
+            response.data["errors"]["username"], "Username should not contain any spaces")
 
     def test_empty_space_email(self):
         """
@@ -118,15 +118,15 @@ class UserRegisterTest(BaseTest):
 
         """
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=EMPTY_SPACE_EMAIL,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["email"], "Email should not contain any spaces")
+            response.data["errors"]["email"], "Email should not contain any spaces")
 
     def test_password_with_empty_space(self):
         """
@@ -134,15 +134,15 @@ class UserRegisterTest(BaseTest):
 
         """
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=PASSWORD_WITH_SPACE,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["password"], "Password should not contain any spaces")
+            response.data["errors"]["password"], "Password should not contain any spaces")
 
     def test_invalid_password(self):
         """
@@ -150,14 +150,14 @@ class UserRegisterTest(BaseTest):
 
         """
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=INVALID_PASSWORD,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(self.response.data["errors"]["password"],
+        self.assertEquals(response.data["errors"]["password"],
                           "Password should have atleast one lowercase character,one Uppercase character, one Integer and one Special character")
 
     def test_short_password(self):
@@ -166,14 +166,14 @@ class UserRegisterTest(BaseTest):
 
         """
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=SHORT_PASSWORD,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(self.response.data["errors"]["password"],
+        self.assertEquals(response.data["errors"]["password"],
                           "Password length should not be less than 8 characters or greater than 20 characters")
 
     def test_empty_invalide_email(self):
@@ -181,12 +181,12 @@ class UserRegisterTest(BaseTest):
         test user registration with invalid email
 
         """
-        self.response = self.client.post(
+        response = self.client.post(
             reverse('register-user'),
             data=INVALID_EMAIL,
             format='json'
         )
-        self.assertEquals(self.response.status_code,
+        self.assertEquals(response.status_code,
                           status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            self.response.data["errors"]["email"], "Invalid email address")
+            response.data["errors"]["email"], "Invalid email address")
