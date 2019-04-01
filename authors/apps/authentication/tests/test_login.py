@@ -31,10 +31,8 @@ class LoginUserTest(BaseTest):
             response.status_code , 
             status.HTTP_200_OK
         )
-        self.assertEquals(
-            response.data['email'],
-            'anyatijude@glo.com'
-        )
+        self.assertEquals(response.data['email'],
+        'anyatibrian@glo.com')
     
     def test_invalide_user_login(self):
         """
@@ -100,12 +98,7 @@ class LoginUserTest(BaseTest):
         token = self.create_user(VALID_USER_DATA)
 
         response = self.client.get('/api/user/', HTTP_AUTHORIZATION=token, format='json')
-
-        self.assertEqual(
-            response.data["username"], 
-            VALID_USER_DATA.get('user').get('username')
-        )
-        self.assertEqual(
-            response.status_code, 
-            status.HTTP_200_OK
-        )
+        response = self.client.get(self.users, HTTP_AUTHORIZATION=token, format='json')
+        self.assertEqual(response.data["email"], VALID_USER_DATA.get('user').get('email'))
+        self.assertEqual(response.data["username"], VALID_USER_DATA.get('user').get('username'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -17,10 +17,8 @@ class UserJSONRenderer(JSONRenderer):
             return super(UserJSONRenderer, self).render(data)
 
         if token is not None and isinstance(token, bytes):
-            # Decode the token if its of bytes type
             data['token'] = token.decode('utf-8')
 
-        # Finally, we can render our data under the "user" namespace.
         return json.dumps({
             'user': data
         })

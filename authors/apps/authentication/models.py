@@ -1,18 +1,18 @@
+import os
 import jwt
-from authors.settings import EMAIL_HOST_USER
+from authors.settings import EMAIL_HOST_USER,SECRET_KEY
 from django.db.models.signals import post_save
 from datetime import datetime, timedelta
 from django.core.mail import send_mail
-from django.conf import settings
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
-
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin
 )
 from django.db import models
+
 
 class UserManager(BaseUserManager):
     """
@@ -40,14 +40,13 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, username, email, password):
         """
-        Create and return a `User` with superuser powers.
+      Create and return a `User` with superuser powers.
 
-        Superuser powers means that this use is an admin that can do anything
-        they want.
-        """
+      Superuser powers means that this use is an admin that can do anything
+      they want.
+      """
         if password is None:
             raise TypeError('Superusers must have a password.')
-
         user = self.create_user(username, email, password)
         user.is_superuser = True
         user.is_staff = True
@@ -94,16 +93,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def get_full_name(self):
         """
+      This method is required by Django for things like handling emails.
+      Typically, this would be the user's first and last name. Since we do
+      not store the user's real name, we return their username instead.
+      """
+        return self.username
+
+    def get_short_name(self):
+        """
         This method is required by Django for things like handling emails.
         Typically, this would be the user's first and last name. Since we do
         not store the user's real name, we return their username instead.
         """
         return self.username
-
-    def get_short_name(self):
-
-        return self.username
-
     @property
     def token(self):
         """
@@ -113,18 +115,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.generated_jwt_token
 
     def generated_jwt_token(self):
-
         """
         This method generates a JWT token that stores a user
         
         """
         exp_time = datetime.now() + timedelta(hours=3)
-
         token = jwt.encode({
             'id': self.pk,
             'email': self.email,
             'exp': int(exp_time.strftime('%s'))
-        }, settings.SECRET_KEY, algorithm='HS256')
+        }, SECRET_KEY, algorithm='HS256')
         return token.decode('utf-8')
 
 
@@ -135,7 +135,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             url=reverse('activate-user',kwargs={
                     'token':token
                 })
-            # domain = get_current_site(request).domain + url
 
             domain = str(link) + str(url)
             send_mail(
@@ -153,3 +152,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         Get the current url
         """
         post_save.connect(User.call_back(url), sender=User, weak=False)
+        
+    def send_password_reset_link(self,current_url, token):
+        """
+        method that sends mail to the user
+        """
+        url = reverse('password-reset', args=[token])
+        activate_url = get_current_site(current_url).domain + url
+        email_subject = "Author haven password reset"
+        email_message = activate_url
+        send_mail(subject=email_subject,
+                    message=email_message,
+                    recipient_list=[self.email,],
+                    fail_silently=False,
+                    from_email='authorsheave2019@gmail.com'
+                    )
+        return True
+            

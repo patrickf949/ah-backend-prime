@@ -1,7 +1,7 @@
 VALID_USER_DATA = {
     "user": {
         "username": "anyatijude",
-        "email": "anyatijude@glo.com",
+        "email": "anyatibrian@glo.com",
         "password": "Password@123"
     }
 }
@@ -88,7 +88,7 @@ INVALID_EMAIL = {
 }
 VALID_LOGIN_DATA = {
     "user": {
-        "email": "anyatijude@glo.com",
+        "email": "anyatibrian@glo.com",
         "password": "Password@123"
     }
 }
@@ -114,4 +114,11 @@ ERROR_LOGIN={
             "A user with this email and password was not found."
         ]
     }
+}
+EMAIL_ACTIVATION_DATA = {
+ "email": "anyatibrian@glo.com"
+}
+PASSWORD_RESET_DATA = {
+    "password":"password@123",
+    "confirmpassword":"password@123"
 }

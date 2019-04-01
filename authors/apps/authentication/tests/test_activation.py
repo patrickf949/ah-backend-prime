@@ -30,7 +30,7 @@ class ActivateUserTest(BaseTest):
         )
         self.assertEquals(
             response.data['email'],
-            'anyatijude@glo.com'
+            'anyatibrian@glo.com'
         )
     
 

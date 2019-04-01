@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
-from .models import User
+from authors.apps.authentication.models import User
 
 class RegistrationSerializer(serializers.ModelSerializer):
     """Serializers registration requests and creates a new user."""
@@ -98,3 +98,20 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+class PasswordResetSerializser(serializers.ModelSerializer):
+    password = serializers.CharField(
+        required=True, min_length=8, write_only=True)
+    confirmpassword = serializers.CharField(
+        required=True, min_length=8, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('password', 'confirmpassword')
+
+    def validate_password(self, value):
+        if value is None:
+            raise serializers.ValidationError(
+                'please enter your password here'
+            )
+        return value

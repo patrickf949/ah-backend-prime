@@ -1,7 +1,7 @@
 from rest_framework import status
 from django.urls import reverse
-from .base import BaseTest
-from .test_data import (
+from authors.apps.authentication.tests.base import BaseTest
+from authors.apps.authentication.tests.test_data import (
     VALID_USER_DATA,
     EMPTY_EMAIL,
     EMPTY_USERNAME,
@@ -14,7 +14,6 @@ from .test_data import (
     SHORT_PASSWORD,
     PASSWORD_WITH_SPACE
 )
-
 
 class UserRegisterTest(BaseTest):
     """
@@ -33,7 +32,7 @@ class UserRegisterTest(BaseTest):
         )
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(response.data["username"], "anyatijude")
-        self.assertEquals(response.data["email"], "anyatijude@glo.com")
+        self.assertEquals(response.data["email"], "anyatibrian@glo.com")
 
     def test_empty_username(self):
         """
