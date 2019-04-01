@@ -1,68 +1,109 @@
-valid_user_data = {
-                    "user":{
-                        "username":"anyatijude",
-                        "email":"anyatijude@glo.com",
-                        "password":"password@123"
-                    }
-                }
+VALID_USER_DATA = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatijude@glo.com",
+        "password": "Password@123"
+    }
+}
 
-empty_username = {
-                    "user":{
-                        "username":"",
-                        "email":"anyatijude@glo.com",
-                        "password":"password@123"
-                    }
-                }
+EMPTY_USERNAME = {
+    "user": {
+        "username": "",
+        "email": "anyatijude@glo.com",
+        "password": "Password@123"
+    }
+}
 
-empty_email = {
-                    "user":{
-                        "username":"anyatijude",
-                        "email":"",
-                        "password":"password@123"
-                    }
-                }
+INVALID_USERNAME = {
+    "user": {
+        "username": "fds",
+        "email": "anyatijude@glo.com",
+        "password": "Password@123"
+    }
+}
 
-empty_password = {
-                    "user":{
-                        "username":"anyatijude",
-                        "email":"anyatijude@glo.com",
-                        "password":" "
-                    }
-                }
+EMPTY_EMAIL = {
+    "user": {
+        "username": "anyatijude",
+        "email": "",
+        "password": "Password@123"
+    }
+}
 
-invalid_email = {
-                    "user":{
-                        "username":"anyatijude",
-                        "email":"anyatij",
-                        "password":"password@123"
-                    }
-                }
-valid_login_data = {
-               "user":{
-                  "email":"anyatijude@glo.com",
-                  "password":"password@123"
-               }
-             }
-login_response = {'email': 'anyatijude@glo.com', 'username': 'anyatijude'}
+EMPTY_SPACE_USERNAME = {
+    "user": {
+        "username": "anyatijude ",
+        "email": "anyatijude@glo.com",
+        "password": " "
+    }
+}
 
-empty_login_email = {
-                "user":{
-                    "email":"",
-                    "password":"password@123"
-                }
-             }
+EMPTY_SPACE_EMAIL = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatijude@glo.com ",
+        "password": " "
+    }
+}
 
-empty_login_password = {
-                "user":{
-                    "email":"anyatibrian@glo.com",
-                    "password":""
-                }
-             }
+EMPTY_PASSWORD = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatijude@glo.com",
+        "password": " "
+    }
+}
 
-
-
-
-
+PASSWORD_WITH_SPACE = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatijude@glo.com",
+        "password": "Aaaa2!jcdjc "
+    }
+}
 
 
+INVALID_PASSWORD = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatijude@glo.com",
+        "password": "password"
+    }
+}
 
+SHORT_PASSWORD = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatijude@glo.com",
+        "password": "pass"
+    }
+}
+
+INVALID_EMAIL = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatij",
+        "password": "Password@123"
+    }
+}
+VALID_LOGIN_DATA = {
+    "user": {
+        "email": "anyatijude@glo.com",
+        "password": "Password@123"
+    }
+}
+LOGIN_RESPONSE = {'email': 'anyatijude@glo.com', 'username': 'anyatijude'}
+
+EMPTY_LOGIN_EMAIL = {
+    "user": {
+        "email": "",
+        "password": "Password@123"
+    }
+}
+
+EMPTY_LOGIN_PASSWORD = {
+    "user": {
+        "email": "anyatibrian@glo.com",
+        "password": ""
+    }
+}

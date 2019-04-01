@@ -8,6 +8,7 @@ from .renderers import UserJSONRenderer
 from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer
 )
+from .validation import validate_registration
 
 
 class RegistrationAPIView(GenericAPIView):
@@ -18,6 +19,7 @@ class RegistrationAPIView(GenericAPIView):
 
     def post(self, request):
         user = request.data.get('user', {})
+        validate_registration(user)
 
         # The create serializer, validate serializer, save serializer pattern
         # below is common and you will see it a lot throughout this course and

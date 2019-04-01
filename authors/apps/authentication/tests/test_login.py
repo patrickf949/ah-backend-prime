@@ -1,11 +1,11 @@
 from .base import BaseTest
 from rest_framework import status
 from .test_data import ( 
-                         valid_login_data, 
-                         valid_user_data, 
-                         login_response,
-                         empty_login_email, 
-                         empty_login_password
+                         VALID_LOGIN_DATA, 
+                         VALID_USER_DATA, 
+                         LOGIN_RESPONSE,
+                         EMPTY_LOGIN_EMAIL, 
+                         EMPTY_LOGIN_PASSWORD
                          )
 
 
@@ -17,18 +17,18 @@ class LoginUserTest(BaseTest):
     def test_user_login(self):
         self.client.post(
             self.register_url,
-            data=valid_user_data,
+            data=VALID_USER_DATA,
             format='json'
         )
         self.response= self.client.post(
             self.login_url,
-            data=valid_login_data,
+            data=VALID_LOGIN_DATA,
             format='json'
         )
         self.assertEquals(self.response.status_code , 
         status.HTTP_200_OK)
         self.assertEquals(self.response.data,
-        login_response)
+        LOGIN_RESPONSE)
     
     def test_invalide_user_login(self):
         """
@@ -37,7 +37,7 @@ class LoginUserTest(BaseTest):
         """
         self.response= self.client.post(
             self.login_url,
-            data=valid_login_data,
+            data=VALID_LOGIN_DATA,
             format='json'
         )
         self.assertEquals(self.response.status_code , 
@@ -52,7 +52,7 @@ class LoginUserTest(BaseTest):
         """
         self.response= self.client.post(
             self.login_url,
-            data=empty_login_email,
+            data=EMPTY_LOGIN_EMAIL,
             format='json'
         )
         self.assertEquals(self.response.status_code , 
@@ -67,7 +67,7 @@ class LoginUserTest(BaseTest):
         """
         self.response= self.client.post(
             self.login_url,
-            data=empty_login_password,
+            data=EMPTY_LOGIN_PASSWORD,
             format='json'
         )
         self.assertEquals(self.response.status_code , 

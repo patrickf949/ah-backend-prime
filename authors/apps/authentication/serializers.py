@@ -10,11 +10,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     # Ensure passwords are at least 8 characters long, no longer than 128
     # characters, and can not be read by the client.
-    password = serializers.CharField(
-        max_length=128,
-        min_length=8,
-        write_only=True
-    )
 
     # The client should not be able to send a token along with a registration
     # request. Making `token` read-only handles that for us.
