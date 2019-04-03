@@ -107,3 +107,11 @@ EMPTY_LOGIN_PASSWORD = {
         "password": ""
     }
 }
+
+ERROR_LOGIN={
+    "errors": {
+        "error": [
+            "A user with this email and password was not found."
+        ]
+    }
+}

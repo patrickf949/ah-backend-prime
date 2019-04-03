@@ -32,7 +32,6 @@ class JWTAuthentication(authentication.BaseAuthentication):
             msg = 'Your token is invalid'
             raise exceptions.AuthenticationFailed(msg)
 
-        print(auth_header)
         prefix = auth_header[0].decode('utf-8')
         token = auth_header[1].decode('utf-8')
 

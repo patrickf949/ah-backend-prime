@@ -1,15 +1,18 @@
 import jwt
-
+from authors.settings import EMAIL_HOST_USER
+from django.db.models.signals import post_save
 from datetime import datetime, timedelta
-
+from django.core.mail import send_mail
 from django.conf import settings
+from django.urls import reverse
+from django.contrib.sites.shortcuts import get_current_site
+
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin
 )
 from django.db import models
-
 
 class UserManager(BaseUserManager):
     """
@@ -18,7 +21,7 @@ class UserManager(BaseUserManager):
     Django to create a `User` for free.
 
     All we have to do is override the `create_user` function which we will use
-    to create `User` objects.
+    to create `User` objects. on
     """
 
     def create_user(self, username, email, password=None):
@@ -48,6 +51,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(username, email, password)
         user.is_superuser = True
         user.is_staff = True
+        user.is_active = True
         user.save()
 
         return user
@@ -66,7 +70,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True
     )
 
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
 
     is_staff = models.BooleanField(default=False)
 
@@ -122,3 +126,30 @@ class User(AbstractBaseUser, PermissionsMixin):
             'exp': int(exp_time.strftime('%s'))
         }, settings.SECRET_KEY, algorithm='HS256')
         return token.decode('utf-8')
+
+
+    @staticmethod
+    def call_back(link):
+        def fun(sender, instance, **kwargs):
+            token=instance.generated_jwt_token()
+            url=reverse('activate-user',kwargs={
+                    'token':token
+                })
+            # domain = get_current_site(request).domain + url
+
+            domain = str(link) + str(url)
+            send_mail(
+                    subject=instance.username+" Welcome to Author's Haven",
+                    message="Welcome to Author's Haven."+\
+                    "\nLogin using this link\nhttp://"+domain,
+                    from_email=EMAIL_HOST_USER,
+                    recipient_list=[instance.email],    
+                    fail_silently=False)
+        return fun
+
+    @staticmethod
+    def get_url(url):
+        """
+        Get the current url
+        """
+        post_save.connect(User.call_back(url), sender=User, weak=False)
