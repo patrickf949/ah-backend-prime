@@ -16,8 +16,9 @@ def register_user(email, username):
             'password':password
         }
         new_user = User.objects.create_user(**user)
-        new_user.is_active
+        new_user.is_active = True
         new_user.save()
+        new_user = authenticate(username=email, password=password)
         return {
             'email': new_user.email,
             'username': new_user.username,
