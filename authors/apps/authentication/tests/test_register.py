@@ -12,7 +12,8 @@ from authors.apps.authentication.tests.test_data import (
     EMPTY_SPACE_USERNAME,
     EMPTY_SPACE_EMAIL,
     SHORT_PASSWORD,
-    PASSWORD_WITH_SPACE
+    PASSWORD_WITH_SPACE,
+    INVALID_FACEBOOK_TOKEN, INVALID_GOOGLE_TOKEN, INVALID_TWITTER_TOKENS
 )
 
 class UserRegisterTest(BaseTest):
@@ -68,6 +69,7 @@ class UserRegisterTest(BaseTest):
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
+
         self.assertEquals(
             response.data["errors"]["username"], 
             "Username should not be less than 4 characters"
@@ -87,6 +89,7 @@ class UserRegisterTest(BaseTest):
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
+
         self.assertEquals(
             response.data["errors"]["email"], 
             "Email should not be left empty"
@@ -235,3 +238,4 @@ class UserRegisterTest(BaseTest):
             response.data["errors"]["email"], 
             "Invalid email address"
         )
+

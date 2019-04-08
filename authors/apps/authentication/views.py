@@ -154,4 +154,3 @@ class PassordResetEmailView(GenericAPIView):
                             {"error": "password and confirm password fields do not match"},
                             status=status.HTTP_400_BAD_REQUEST
                             )
-
