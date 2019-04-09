@@ -1,23 +1,18 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import (
-                                    UpdateAPIView, 
-                                    RetrieveAPIView,
-                                    GenericAPIView
-                                    )
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.permissions import (IsAuthenticatedOrReadOnly,
-                                        AllowAny, 
                                         IsAuthenticated
                                         )
-from .permissions import IsOwnerOrReadOnly
-from .models import Profile
-from .renderers import ProfileJSONRenderer
-from .serializers import (ProfileSerializer,
-                            )
+from rest_framework.exceptions import NotFound
 from authors.apps.authentication.models import User
 from authors.apps.authentication.renderers import UserJSONRenderer
 from authors.apps.authentication.serializers import UserSerializer
+from .permissions import IsOwnerOrReadOnly
+from .models import Profile
+from .renderers import ProfileJSONRenderer
+from .serializers import ProfileSerializer
 
 
 class ListProfileView(GenericAPIView):
@@ -30,7 +25,7 @@ class ListProfileView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = Profile.objects.all()
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = self.serializer_class(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UpdateProfileView(GenericAPIView):
@@ -44,26 +39,29 @@ class UpdateProfileView(GenericAPIView):
     lookup_field = "username"
 
     def get_object(self):
-        return get_object_or_404(self.get_queryset(), 
-                                user__username=self.kwargs.get("username")
-                                )
+        return get_object_or_404(
+            self.get_queryset(),
+            user__username=self.kwargs.get("username")
+        )
 
     def put(self, request, *args, **kwargs):
         profile = self.get_object()
         user_name = self.kwargs.get('username')
-        logged_in_user = request.user.username   
+        logged_in_user = request.user.username
         if str(user_name) == str(logged_in_user):
-            serializer = self.serializer_class(profile,
-                                                data=request.data
-                                                )
+            serializer = self.serializer_class(
+                profile,
+                data=request.data
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({"message": "Profile Updated successfully"})
         else:
-            return Response({"message": "You do not have privileges to edit this profile"},
-                            status=status.HTTP_403_FORBIDDEN
-                            )
-    
+            return Response(
+                {"message": "You do not have privileges to edit this profile"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
 class ProfileRetrieveAPIView(GenericAPIView):
     """
     class handling returning the profile of a single user
@@ -72,10 +70,16 @@ class ProfileRetrieveAPIView(GenericAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, username, *args, **kwargs):
+        '''Function for getting a single users profile'''
+        follower = self.request.user.profile
+
         profile = Profile.objects.select_related('user').get(
-                user__username=username)
-        serializer = self.serializer_class(profile)
-        profile = {'profile': serializer.data}
+            user__username=username)
+        following = str(profile.is_followed_by(follower))
+        serializer = self.serializer_class(profile, context={'request': request})
+        data = serializer.data
+        data.update({"following": following})
+        profile = {'profile': data}
         return Response(profile, status=status.HTTP_200_OK)
 
 class UserListAPIView(GenericAPIView):
@@ -91,3 +95,55 @@ class UserListAPIView(GenericAPIView):
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class ProfileFollowAPIView(GenericAPIView):
+    '''This class handles following and unfollowing a user'''
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (ProfileJSONRenderer,)
+
+
+    def delete(self, request, username=None):
+        '''This function enables one to unfollow a user'''
+        follower = self.request.user.profile
+
+        try:
+            followee = Profile.objects.get(user__username=username)
+        except Profile.DoesNotExist:
+            raise NotFound('A profile with this username was not found.')
+
+        if follower.pk is followee.pk:
+            raise serializers.ValidationError('You can not unfollow yourself.')
+
+        if not follower.is_following(followee):
+            raise serializers.ValidationError(f'You do not follow {followee.user.username}')
+
+        follower.unfollow(followee)
+
+        return Response(
+            {"message": f"You have unfollowed {followee.user.username}"},
+            status=status.HTTP_200_OK
+        )
+
+
+    def post(self, request, username=None):
+        '''This function enables one to follow a user'''
+        follower = self.request.user.profile
+
+        try:
+            followee = Profile.objects.get(user__username=username)
+        except Profile.DoesNotExist:
+            raise NotFound('A profile with this username was not found.')
+
+        if follower.pk is followee.pk:
+            raise serializers.ValidationError('You can not follow yourself.')
+
+        if follower.is_following(followee):
+            raise serializers.ValidationError('You already follow this user')
+
+        follower.follow(followee)
+
+        return Response(
+            {"message": f"You are now following {followee.user.username}"},
+            status=status.HTTP_201_CREATED
+        )

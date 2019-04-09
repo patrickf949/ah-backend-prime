@@ -139,3 +139,242 @@ class TestUserProfile(BaseTestProfile):
         self.assertEqual(response.status_code,
                          status.HTTP_403_FORBIDDEN)
 
+    def test_follow_user(self):
+        '''Test for following a user'''
+        response = self.client.post(
+            self.register_url,
+            content_type='application/json',
+            data=json.dumps(VALID_USER_DATA_2)
+        )
+        self.activate_email = reverse(
+            'activate-user',
+            kwargs={'token': response.data['token']}
+        )
+        self.client.get(
+            self.activate_email
+        )
+        login_response_2 = self.client.post(
+            self.login_url,
+            content_type='application/json',
+            data=json.dumps(VALID_LOGIN_DATA_2)
+        )
+        user_token = login_response_2.data['token']
+
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'anyatijude'}
+        )
+
+        response = self.client.post(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' + user_token
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+        self.assertEqual(response.data['message'], 'You are now following anyatijude')
+
+    def test_unfollow_user(self):
+        '''Test for unfollowing a user'''
+        response = self.client.post(
+            self.register_url,
+            content_type='application/json',
+            data=json.dumps(VALID_USER_DATA_2)
+        )
+        self.activate_email = reverse(
+            'activate-user',
+            kwargs={'token': response.data['token']}
+        )
+        self.client.get(
+            self.activate_email
+        )
+        login_response_2 = self.client.post(
+            self.login_url,
+            content_type='application/json',
+            data=json.dumps(VALID_LOGIN_DATA_2)
+        )
+        user_token = login_response_2.data['token']
+
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'anyatijude'}
+        )
+
+        self.client.post(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' + user_token
+        )
+
+        response = self.client.delete(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' + user_token
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertEqual(response.data['message'], 'You have unfollowed anyatijude')
+
+    def test_follow_non_existant_user(self):
+        '''Test for following non-existant user'''
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'Ogwal'}
+        )
+        response = self.client.post(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' +
+            self.user_token
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND
+        )
+        self.assertEqual(response.data['detail'], 'A profile with this username was not found.')
+
+    def test_unfollow_non_existant_user(self):
+        '''Test for unfollowing non-existant user'''
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'Ogwal'}
+        )
+        response = self.client.delete(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' +
+            self.user_token
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND
+        )
+        self.assertEqual(response.data['detail'], 'A profile with this username was not found.')
+
+    def test_follow_oneself(self):
+        '''Test for one following themselves'''
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'anyatijude'}
+        )
+        response = self.client.post(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' +
+            self.user_token
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(response.data['errors'][0], 'You can not follow yourself.')
+
+    def test_follow_user_again(self):
+        '''Test for following a user once again'''
+        response = self.client.post(
+            self.register_url,
+            content_type='application/json',
+            data=json.dumps(VALID_USER_DATA_2))
+        self.activate_email = reverse(
+            'activate-user',
+            kwargs={'token': response.data['token']}
+        )
+        self.client.get(
+            self.activate_email
+        )
+        login_response_2 = self.client.post(
+            self.login_url,
+            content_type='application/json',
+            data=json.dumps(VALID_LOGIN_DATA_2)
+        )
+        user_token = login_response_2.data['token']
+
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'anyatijude'}
+        )
+
+        self.client.post(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' + user_token
+        )
+
+        response = self.client.post(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' + user_token
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(response.data['errors'][0], 'You already follow this user')
+
+
+    def test_unfollow_already_unfollowed_user(self):
+        '''Test for unfollowing an unfollowed user'''
+        response = self.client.post(
+            self.register_url,
+            content_type='application/json',
+            data=json.dumps(VALID_USER_DATA_2))
+        self.activate_email = reverse(
+            'activate-user',
+            kwargs={'token': response.data['token']}
+        )
+        self.client.get(
+            self.activate_email
+        )
+        login_response_2 = self.client.post(
+            self.login_url,
+            content_type='application/json',
+            data=json.dumps(VALID_LOGIN_DATA_2)
+        )
+        user_token = login_response_2.data['token']
+
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'anyatijude'}
+        )
+
+        self.client.delete(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' + user_token
+        )
+
+        response = self.client.delete(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' + user_token
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(response.data['errors'][0], 'You do not follow anyatijude')
+
+    def test_unfollowing_myself(self):
+        url = reverse(
+            'follow-profile',
+            kwargs={'username': 'anyatijude'}
+        )
+        response = self.client.delete(
+            url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' +
+            self.user_token
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(response.data['errors'][0], 'You can not unfollow yourself.')
