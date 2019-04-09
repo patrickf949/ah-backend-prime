@@ -72,3 +72,4 @@ def validate_registration(data):
                 'password': 'Password should not contain any spaces'
             }
         )
+

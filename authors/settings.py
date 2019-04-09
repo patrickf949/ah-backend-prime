@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -82,7 +83,6 @@ DATABASES = {
     }
 }
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -115,7 +115,6 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:4000',
 )
 
-
 AUTH_USER_MODEL = 'authentication.User'
 
 REST_FRAMEWORK = {
@@ -140,9 +139,9 @@ SWAGGER_SETTINGS = {
 django_heroku.settings(locals())
 
 EMAIL_USE_TLS = True
-EMAIL_HOST = os.environ.get('EMAIL_HOST',)
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER',)
-EMAIL_HOST_PASSWORD =os.environ.get('EMAIL_HOST_PASSWORD',)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', )
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', )
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', )
 EMAIL_PORT = 587
 TWITTER_CONSUMER_API_KEY = os.environ.get('TWITTER_CONSUMER_API_KEY')
 TWITTER_CONSUMER_API_SECRET = os.environ.get('TWITTER_CONSUMER_API_SECRET')

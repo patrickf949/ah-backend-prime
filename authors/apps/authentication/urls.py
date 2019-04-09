@@ -4,8 +4,9 @@ from authors.apps.authentication.views import (
     LoginAPIView,
     RegistrationAPIView,
     UserRetrieveUpdateAPIView,
-    PassordResetEmailView,
-    ActivateUserAPIView
+    PassordResetRequestView,
+    ActivateUserAPIView,
+    PasswordResetView
 )
 
 urlpatterns = [
@@ -14,7 +15,7 @@ urlpatterns = [
     path('users/login/', LoginAPIView.as_view(), name='login-user'),
     path('users/register/<str:token>/activate/', ActivateUserAPIView.as_view(), name='activate-user'),
     path('users/password/reset/email/',
-         PassordResetEmailView.as_view(), name='password-email'),
+         PassordResetRequestView.as_view(), name='password-email'),
     path('users/password/<str:token>/reset/',
-         PassordResetEmailView.as_view(), name='password-reset'),
+         PasswordResetView.as_view(), name='password-reset'),
 ]

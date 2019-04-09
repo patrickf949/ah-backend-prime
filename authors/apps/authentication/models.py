@@ -1,6 +1,6 @@
 import os
 import jwt
-from authors.settings import EMAIL_HOST_USER,SECRET_KEY
+from authors.settings import EMAIL_HOST_USER, SECRET_KEY
 from django.db.models.signals import post_save
 from datetime import datetime, timedelta
 from django.core.mail import send_mail
@@ -57,7 +57,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-
     username = models.CharField(
         db_index=True,
         max_length=255,
@@ -106,6 +105,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         not store the user's real name, we return their username instead.
         """
         return self.username
+
     @property
     def token(self):
         """
@@ -127,23 +127,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         }, SECRET_KEY, algorithm='HS256')
         return token.decode('utf-8')
 
-
     @staticmethod
     def call_back(link):
         def fun(sender, instance, **kwargs):
-            token=instance.generated_jwt_token()
-            url=reverse('activate-user',kwargs={
-                    'token':token
-                })
+            token = instance.generated_jwt_token()
+            url = reverse('activate-user', kwargs={
+                'token': token
+            })
 
             domain = str(link) + str(url)
             send_mail(
-                    subject=instance.username+" Welcome to Author's Haven",
-                    message="Welcome to Author's Haven."+\
-                    "\nLogin using this link\nhttp://"+domain,
-                    from_email=EMAIL_HOST_USER,
-                    recipient_list=[instance.email],    
-                    fail_silently=False)
+                subject=instance.username + " Welcome to Author's Haven",
+                message="Welcome to Author's Haven." + \
+                        "\nLogin using this link\nhttp://" + domain,
+                from_email=EMAIL_HOST_USER,
+                recipient_list=[instance.email],
+                fail_silently=False)
+
         return fun
 
     @staticmethod
@@ -152,20 +152,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         Get the current url
         """
         post_save.connect(User.call_back(url), sender=User, weak=False)
-        
-    def send_password_reset_link(self,current_url, token):
+
+    def send_password_reset_link(self, current_url, token):
         """
         method that sends mail to the user
         """
         url = reverse('password-reset', args=[token])
         activate_url = get_current_site(current_url).domain + url
         email_subject = "Author haven password reset"
-        email_message = activate_url
+        email_message = 'hi {} please follow the link ' \
+                        'below to reset  your account\n'.format(self.username) + activate_url
         send_mail(subject=email_subject,
-                    message=email_message,
-                    recipient_list=[self.email,],
-                    fail_silently=False,
-                    from_email='authorsheave2019@gmail.com'
-                    )
+                  message=email_message,
+                  recipient_list=[self.email, ],
+                  fail_silently=False,
+                  from_email=EMAIL_HOST_USER
+                  )
         return True
-            

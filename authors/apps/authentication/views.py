@@ -16,7 +16,7 @@ from django.contrib.sites.shortcuts import get_current_site
 
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer
+    LoginSerializer, RegistrationSerializer, UserSerializer, PasswordResetResquestSerializer
 )
 from authors.apps.authentication.renderers import UserJSONRenderer
 from authors.apps.authentication.models import User
@@ -40,7 +40,7 @@ class RegistrationAPIView(GenericAPIView):
     def post(self, request):
         user = request.data.get('user', {})
         validate_registration(user)
-        url=get_current_site(request)
+        url = get_current_site(request)
         User.get_url(url)
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
@@ -53,22 +53,21 @@ class ActivateUserAPIView(GenericAPIView):
         token = kwargs.pop('token')
         user = jwt.decode(
             token,
-            SECRET_KEY 
+            SECRET_KEY
         )
         activateUser = User.objects.filter(pk=user['id']).first()
 
         if not activateUser.is_active:
-            activateUser.is_active=True
+            activateUser.is_active = True
             activateUser.save()
             return Response({
-                'message':'your account has been activated successfully please login',
-                'user':user    
+                'message': 'your account has been activated successfully please login',
+                'user': user
             }, status=status.HTTP_202_ACCEPTED)
-        
 
         return Response({
-                'message':'your account is already active please login'  
-            }, status=status.HTTP_202_ACCEPTED)
+            'message': 'your account is already active please login'
+        }, status=status.HTTP_202_ACCEPTED)
 
 
 class LoginAPIView(GenericAPIView):
@@ -91,7 +90,6 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     serializer_class = UserSerializer
 
     def retrieve(self, request, *args, **kwargs):
-
         serializer = self.serializer_class(request.user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -108,35 +106,39 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class PassordResetEmailView(GenericAPIView):
+class PassordResetRequestView(GenericAPIView):
     """
     allow users to request for a password reset token provided the email is valid
     """
     permission_classes = (AllowAny,)
-    serializer_class = PasswordResetSerializser
-    
+    serializer_class = PasswordResetResquestSerializer
 
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         user = User.objects.filter(email=email).first()
         if user:
             token = user.generated_jwt_token()
-            user.send_password_reset_link(request,token)
+            user.send_password_reset_link(request, token)
             return Response(
-                {'message':'password reset link has been sent to your email'},
-                 status=status.HTTP_200_OK
-                 )
+                {'message': 'password reset link has been sent to your email'},
+                status=status.HTTP_200_OK
+            )
         else:
-          return Response({'error':'the email does not match any account'},
-                status=status.HTTP_400_BAD_REQUEST
-                )
-    
+            return Response({'error': 'the email does not match any account'},
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
+
+
+class PasswordResetView(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PasswordResetSerializser
+
     def put(self, request, *args, **kwargs):
         token = kwargs.pop('token')
         try:
-            user = jwt.decode(token,SECRET_KEY)
+            user = jwt.decode(token, SECRET_KEY)
         except jwt.ExpiredSignatureError:
-            return Response({'error':'token expired'})
+            return Response({'error': 'token expired'})
         user_detail = User.objects.get(pk=user['id'])
         data = request.data.get('user', {})
         if data['password'] == data['confirmpassword']:
@@ -145,12 +147,13 @@ class PassordResetEmailView(GenericAPIView):
             user_detail.set_password(data['password'])
             user_detail.save()
             return Response(
-                            {"message": "your password has been reset successfully"},
-                            status=status.HTTP_200_OK
-                            )
+                {"message": "your password has been reset successfully"},
+                status=status.HTTP_200_OK
+            )
 
         else:
             return Response(
                             {"error": "password and confirm password fields do not match"},
                             status=status.HTTP_400_BAD_REQUEST
                             )
+
