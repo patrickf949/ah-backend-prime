@@ -13,6 +13,7 @@ class BaseTestProfile(APITestCase):
         self.register_url = reverse('register-user')
         self.login_url = reverse('login-user')
         self.profile_url = reverse('user-profiles')
+        self.user_list_url = reverse('users-list')
         response = self.client.post(self.register_url,
                                     content_type='application/json',
                                     data=json.dumps(VALID_USER_DATA)

@@ -15,6 +15,10 @@ from .models import Profile
 from .renderers import ProfileJSONRenderer
 from .serializers import (ProfileSerializer,
                             )
+from authors.apps.authentication.models import User
+from authors.apps.authentication.renderers import UserJSONRenderer
+from authors.apps.authentication.serializers import UserSerializer
+
 
 class ListProfileView(GenericAPIView):
     """
@@ -73,4 +77,17 @@ class ProfileRetrieveAPIView(GenericAPIView):
         serializer = self.serializer_class(profile)
         profile = {'profile': serializer.data}
         return Response(profile, status=status.HTTP_200_OK)
+
+class UserListAPIView(GenericAPIView):
+    """
+    returns list of all users and their profiles
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
+    renderer_classes = (UserJSONRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        queryset = User.objects.all()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 

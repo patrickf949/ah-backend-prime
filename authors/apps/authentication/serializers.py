@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 
 from authors.apps.authentication.models import User
+from authors.apps.profiles.serializers import ProfileSerializer
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -68,16 +69,16 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Handles serialization and deserialization of User objects."""
 
+    profile = ProfileSerializer(many=False, read_only=True, required=False)
     password = serializers.CharField(
         max_length=128,
         min_length=8,
         write_only=True
     )
-
+    
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'token')
-        read_only_fields = ('token',)
+        fields = ('email', 'username', 'password', 'profile')
 
     def update(self, instance, validated_data):
         """Performs an update on a User."""

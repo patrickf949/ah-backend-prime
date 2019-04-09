@@ -7,18 +7,10 @@ class UserJSONRenderer(JSONRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-
+        response = json.dumps({'user': data})
+        if isinstance(data, list):
+            return json.dumps({'Users-list': data})
         errors = data.get('errors', None)
-
-        token = data.get('token', None)
-
         if errors is not None:
-
             return super(UserJSONRenderer, self).render(data)
-
-        if token is not None and isinstance(token, bytes):
-            data['token'] = token.decode('utf-8')
-
-        return json.dumps({
-            'user': data
-        })
+        return response

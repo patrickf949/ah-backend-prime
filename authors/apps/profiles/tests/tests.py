@@ -115,3 +115,27 @@ class TestUserProfile(BaseTestProfile):
         self.assertEquals(isinstance
                         (ProfileJSONRenderer().render({"data": "test"}), 
                         dict), False)
+
+    def test_get_users_list(self):
+        """
+        test if a list of all users and their profiles is returned
+        """
+        response = self.client.get(
+            self.user_list_url,
+            content_type='application/json',
+            HTTP_AUTHORIZATION='Bearer ' +
+            self.user_token)
+        self.assertEqual(response.status_code,
+                         status.HTTP_200_OK)
+
+    def test_unauthorised_get_users_list(self):
+        """
+        tests if an unauthorised user cannot get the users list
+        """
+        response = self.client.get(
+            self.user_list_url,
+            content_type='application/json'
+                                    )
+        self.assertEqual(response.status_code,
+                         status.HTTP_403_FORBIDDEN)
+
