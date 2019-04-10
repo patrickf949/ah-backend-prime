@@ -36,5 +36,6 @@ urlpatterns = [
     path('swagger-docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/v1/', include('authors.apps.authentication.urls')),
     path('api/v1/social/', include('authors.apps.social_auth.urls',)),
-    path('api/v1/', include('authors.apps.profiles.urls'))
+    path('api/v1/', include('authors.apps.profiles.urls')),
+    path('api/v1/', include('authors.apps.articles.urls'))
 ]
