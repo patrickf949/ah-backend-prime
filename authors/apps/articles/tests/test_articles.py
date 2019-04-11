@@ -1,21 +1,23 @@
 import json
-from rest_framework.test import APIClient,APITestCase
+from rest_framework.test import APIClient, APITestCase
 from .base import BaseTest
 from rest_framework import status, response
 from django.urls import reverse
 from .base import ArticlesBaseTest
 from .test_data import VALID_ARTICLE, INVALID_ARTICLE, VALID_UPDATE_ARTICLE
-from authors.apps.authentication.tests.test_data import ( 
+from authors.apps.authentication.tests.test_data import (
     VALID_USER_DATA,
     VALID_LOGIN_DATA,
-    )
+)
+from authors.apps.articles.models import Articles
 from authors.apps.profiles.tests.test_data import VALID_USER_DATA_2
+
 
 class ArticleCreateTest(ArticlesBaseTest):
     """
     Test Activation of users
     """
-    
+
     def test_user_can_create_article_with_valid_data(self):
         """
         User can create article
@@ -31,8 +33,6 @@ class ArticleCreateTest(ArticlesBaseTest):
             response.status_code,
             status.HTTP_201_CREATED
         )
-        
-    
 
     def test_create_article_invalid_data(self):
         """
@@ -50,7 +50,6 @@ class ArticleCreateTest(ArticlesBaseTest):
             status.HTTP_400_BAD_REQUEST
         )
 
-
     def test_update_article_valid_user(self):
         """
         test if author can update article
@@ -60,7 +59,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             token=token,
             article=VALID_ARTICLE
         )
-        update_url = reverse('crud-article',kwargs={
+        update_url = reverse('crud-article', kwargs={
             'slug': response.data['article']['slug']
         })
         response1 = self.client.put(
@@ -73,7 +72,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             response1.status_code,
             status.HTTP_200_OK
         )
-    
+
     def test_update_article_invalid_slug(self):
         """
         test if author can update non existent article
@@ -83,7 +82,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             token=token,
             article=VALID_ARTICLE
         )
-        update_url = reverse('crud-article',kwargs={
+        update_url = reverse('crud-article', kwargs={
             'slug': 'invalid-slug'
         })
         response1 = self.client.put(
@@ -96,7 +95,6 @@ class ArticleCreateTest(ArticlesBaseTest):
             response1.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-    
 
     def test_update_article_invalid_user(self):
         """
@@ -108,7 +106,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             article=VALID_ARTICLE
         )
         token2 = self.create_user(VALID_USER_DATA_2)
-        update_url = reverse('crud-article',kwargs={
+        update_url = reverse('crud-article', kwargs={
             'slug': response.data['article']['slug']
         })
         response1 = self.client.put(
@@ -121,7 +119,6 @@ class ArticleCreateTest(ArticlesBaseTest):
             response1.status_code,
             status.HTTP_403_FORBIDDEN
         )
-    
 
     def test_get_one_valid_article(self):
         """
@@ -132,7 +129,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             token=token,
             article=VALID_ARTICLE
         )
-        get_article_url = reverse('crud-article',kwargs={
+        get_article_url = reverse('crud-article', kwargs={
             'slug': response.data['article']['slug']
         })
         response = self.client.get(
@@ -146,13 +143,12 @@ class ArticleCreateTest(ArticlesBaseTest):
             response.data['article']['title'],
             VALID_ARTICLE['title']
         )
-    
 
     def test_get_one_invalid_article(self):
         """
         test if user can get non existent article
         """
-        get_article_url = reverse('crud-article',kwargs={
+        get_article_url = reverse('crud-article', kwargs={
             'slug': 'invalid-slug'
         })
         response = self.client.get(
@@ -167,7 +163,6 @@ class ArticleCreateTest(ArticlesBaseTest):
             'The article does not exist'
         )
 
-
     def test_delete_one_valid_article(self):
         """
         test if valid user can delete existent article
@@ -177,7 +172,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             token=token,
             article=VALID_ARTICLE
         )
-        get_article_url = reverse('crud-article',kwargs={
+        get_article_url = reverse('crud-article', kwargs={
             'slug': response.data['article']['slug']
         })
         response = self.client.delete(
@@ -193,7 +188,6 @@ class ArticleCreateTest(ArticlesBaseTest):
             "Article has been successfully deleted"
         )
 
-
     def test_delete_one_invalid_article(self):
         """
         test if valid user can delete non existent article
@@ -203,7 +197,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             token=token,
             article=VALID_ARTICLE
         )
-        get_article_url = reverse('crud-article',kwargs={
+        get_article_url = reverse('crud-article', kwargs={
             'slug': 'invalid-slug'
         })
         response = self.client.delete(
@@ -218,7 +212,6 @@ class ArticleCreateTest(ArticlesBaseTest):
             response.data['message'],
             "The article does not exist"
         )
-    
 
     def test_invalid_author_deletes_article(self):
         """
@@ -229,7 +222,7 @@ class ArticleCreateTest(ArticlesBaseTest):
             token=token,
             article=VALID_ARTICLE
         )
-        get_article_url = reverse('crud-article',kwargs={
+        get_article_url = reverse('crud-article', kwargs={
             'slug': response.data['article']['slug']
         })
         token2 = self.create_user(VALID_USER_DATA_2)
@@ -245,6 +238,60 @@ class ArticleCreateTest(ArticlesBaseTest):
             response.data['message'],
             "You do not have permissions to delete this article"
         )
-        
 
-    
+    def test_user_rating_your_own_article(self):
+        token = self.create_user(VALID_USER_DATA)
+        self.create_article(
+            token=token,
+            article=VALID_ARTICLE
+        )
+        article = Articles.objects.all().first()
+        response = self.client.post(
+            reverse('rate-article',
+                    kwargs={'slug': article.slug}
+                    ),
+            data={"ratings": 3.0},
+            HTTP_AUTHORIZATION=token
+        )
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(response.data, response.json())
+
+    def test_user_not_rating_your_own_articles(self):
+        token = self.create_user(VALID_USER_DATA)
+        self.create_article(
+            token=token,
+            article=VALID_ARTICLE
+        )
+        article = Articles.objects.all().first()
+        token = self.create_user(VALID_USER_DATA_2)
+        response = self.client.post(
+            reverse('rate-article',
+                    kwargs={'slug': article.slug}
+                    ),
+            data={"ratings": 3.0},
+            HTTP_AUTHORIZATION=token
+        )
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(response.data['message'],
+                          "thanks for rating this article")
+
+    def test_rating_out_of_range(self):
+        token = self.create_user(VALID_USER_DATA)
+        self.create_article(
+            token=token,
+            article=VALID_ARTICLE
+        )
+        article = Articles.objects.all().first()
+        token = self.create_user(VALID_USER_DATA_2)
+        response = self.client.post(
+            reverse('rate-article',
+                    kwargs={'slug': article.slug}
+                    ),
+            data={"ratings": 7.0},
+            HTTP_AUTHORIZATION=token
+        )
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(
+            response.data['errors']['ratings'][0],
+            'Ratings should be numbers between 0-5')
+
