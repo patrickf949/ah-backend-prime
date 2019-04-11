@@ -4,12 +4,12 @@ from .base import BaseTest
 from rest_framework import status, response
 from django.urls import reverse
 from .base import ArticlesBaseTest
-from .test_data import VALID_ARTICLE, INVALID_ARTICLE, VALID_UPDATE_ARTICLE
+from .test_data import VALID_ARTICLE, INVALID_ARTICLE, VALID_UPDATE_ARTICLE, VALID_ARTICLE_2, INVALID_ARTICLE_2, VALID_ARTICLE_3
 from authors.apps.authentication.tests.test_data import (
     VALID_USER_DATA,
-    VALID_LOGIN_DATA,
+    VALID_LOGIN_DATA
 )
-from authors.apps.articles.models import Articles
+from authors.apps.articles.models import Articles, Tag
 from authors.apps.profiles.tests.test_data import VALID_USER_DATA_2
 
 
@@ -32,6 +32,11 @@ class ArticleCreateTest(ArticlesBaseTest):
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED
+        )
+
+        self.assertEqual(
+            response.data['article']['tagList'],
+            ["cars", "bentlys"]
         )
 
     def test_create_article_invalid_data(self):
@@ -295,3 +300,100 @@ class ArticleCreateTest(ArticlesBaseTest):
             response.data['errors']['ratings'][0],
             'Ratings should be numbers between 0-5')
 
+
+    def test_fetch_tags(self):
+        '''Test fetching all tags available'''
+        token = self.create_user(VALID_USER_DATA)
+
+        response = self.client.post(
+            self.create_articles,
+            HTTP_AUTHORIZATION=token,
+            data=VALID_ARTICLE_2,
+            format='json'
+        )
+
+        get_tags = reverse('tags')
+
+        response = self.client.get(
+            get_tags,
+            HTTP_AUTHORIZATION=token,
+            format='json'
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+        self.assertEqual(
+            response.data['results'],
+            ["supreme", "mighty", "best"]
+        )
+
+    def test_fetch_tags_while_not_logged_in(self):
+        '''Test fetching tags by a user that is not logged in'''
+        get_tags = reverse('tags')
+
+        response = self.client.get(
+            get_tags
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN
+        )
+
+    def test_invalid_tag_format(self):
+        '''Test for invalid tag format'''
+        token = self.create_user(VALID_USER_DATA)
+
+        response = self.client.post(
+            self.create_articles,
+            HTTP_AUTHORIZATION=token,
+            data=INVALID_ARTICLE_2,
+            format='json'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.data['errors'][0],
+            "Tags must be in a list"
+        )
+
+    def test_already_existing_tag(self):
+        '''Test for creating article with already existing tag'''
+        token = self.create_user(VALID_USER_DATA)
+
+        response = self.client.post(
+            self.create_articles,
+            HTTP_AUTHORIZATION=token,
+            data=VALID_ARTICLE_2,
+            format='json'
+        )
+
+        response = self.client.post(
+            self.create_articles,
+            HTTP_AUTHORIZATION=token,
+            data=VALID_ARTICLE_3,
+            format='json'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+
+    def test_model_str(self):
+        '''test for the str method in the Tag models'''
+        token = self.create_user(VALID_USER_DATA)
+
+        response = self.client.post(
+            self.create_articles,
+            HTTP_AUTHORIZATION=token,
+            data=VALID_ARTICLE_3,
+            format='json'
+        )
+        tag_instance = Tag.objects.get(tag='supreme')
+        self.assertEqual(str(tag_instance), tag_instance.tag)
