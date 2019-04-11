@@ -45,7 +45,6 @@ class Articles(models.Model):
     """
     Create models for Article storage
     """
-
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
     body = models.TextField()
@@ -66,6 +65,7 @@ class Articles(models.Model):
     class Meta:
         get_latest_by = ['id']
 
+
     @staticmethod
     def get_slug(title):
         '''Method returns the slag of an article'''
@@ -82,6 +82,10 @@ class Articles(models.Model):
         if not ratings['ratings']:
             return 0
         return float('%.1f' % ratings['ratings'])
+
+    @property
+    def comments(self):
+        return self.comment_set.all()
 
     def __str__(self):
         return self.title
@@ -101,3 +105,32 @@ class ArticleRating(models.Model):
     article = models.ForeignKey(Articles, on_delete=models.CASCADE)
     ratings = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Comment(models.Model):
+    """
+    Model for comments
+    """
+    body = models.TextField()
+    parentId = models.IntegerField()
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(
+        Profile, 
+        on_delete=models.CASCADE,      
+    )
+    article = models.ForeignKey(
+        Articles, 
+        on_delete=models.CASCADE, 
+    )
+    class Meta:
+        get_latest_by = ['createdAt']
+
+
+    @property
+    def reply(self):
+        return self.reply_set.all()
+
+    def __str__(self):
+        return self.body
+

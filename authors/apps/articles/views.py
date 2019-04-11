@@ -1,16 +1,17 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import Articles, Tag, LikeDislike
+from .models import Articles, Tag, LikeDislike, Comment
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, 
                                         AllowAny
                                         )
 from rest_framework import generics, response, status
 from authors.apps.profiles.models import Profile
+from authors.apps.authentication.models import User
 from . import serializers
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
+from django.shortcuts import get_object_or_404, get_list_or_404
 from .pagination import ArticlePagination
 from django.contrib.contenttypes.models import ContentType
 from authors.apps.articles.filters import ArticleFilter
@@ -125,6 +126,9 @@ class RateArticleView(generics.CreateAPIView):
     serializer_class = serializers.RateArticleSerializer
 
     def post(self, request, **kwargs):
+        """
+        Add a rating for an article
+        """
         slug = kwargs.pop('slug')
         user = request.user
         article = Articles.objects.filter(slug=slug).first()
@@ -177,3 +181,119 @@ class VotesView(generics.CreateAPIView):
         serializer = serializers.ArticleSerializer(obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class CommentCreateList(generics.ListCreateAPIView):
+    """
+    Handle all crud operations for comments
+    """
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.CommentSerializer
+    queryset = Comment.objects.all()
+
+
+    def post(self, request, **kwargs):
+        """
+        Create a comment for a particular article
+        """
+        slug = kwargs.get('slug')
+        comment = request.data
+        parentId = kwargs.get('id')
+        article = get_object_or_404(Articles, slug=slug)
+        if parentId!=0:
+            get_object_or_404(Comment, id=parentId, article=article)
+        
+        author = get_object_or_404(Profile, user_id=request.user.id)
+        serialised_data = self.serializer_class(data=comment)
+        
+        serialised_data.is_valid(raise_exception=True)
+        serialised_data.save(
+            author=author,
+            article=article,
+            parentId=parentId
+        )
+        return Response(
+            {"comment": serialised_data.data},
+            status=status.HTTP_201_CREATED
+        )
+
+
+
+    def get(self, request, **kwargs):
+        """
+        Get comments for a particular article
+        """
+        slug = kwargs.pop('slug')
+        comments = Comment.objects.filter(
+            article_id=(get_object_or_404(
+                Articles, slug=slug,
+                )).pk
+            )
+        parent_id = kwargs.pop('id')
+        if parent_id != 0:
+            comments = get_list_or_404(comments, parentId=parent_id)
+        serializer = self.serializer_class(comments, many=True)
+        return Response({
+            'message': serializer.data
+        },
+            status=status.HTTP_200_OK
+        )
+
+
+class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = Comment.objects.all()
+    serializer_class = serializers.CommentSerializer
+    lookup_field = 'id'
+
+    def get(self, request, *args, **kwargs):
+        comment = self.get_one_comment(kwargs.pop('id'))
+        serialized_comment = self.serializer_class(comment)
+        return Response(serialized_comment.data, status=status.HTTP_200_OK)
+
+    def get_one_comment(self, commentId):
+        comment = get_object_or_404(Comment, id=commentId)
+        return comment
+
+    def update(self, request, *args, **kwargs):
+        comment = self.get_one_comment(kwargs.pop('id'))
+        updated_comment = request.data
+        if request.user.id != comment.author.user.id:
+            return Response(
+                {
+                    "message": "You do not have permissions to edit this comment"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = self.serializer_class(
+            comment,
+            updated_comment,
+            partial=True,
+
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    def delete(self, request, *args, **kwargs):
+        comment = self.get_one_comment(kwargs.pop('id'))
+        
+        if request.user.id != comment.author.user.id :
+            return Response(
+                {
+                    "message": "You do not have permissions to delete this comment"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+        comment.delete()
+        return Response(
+            {
+                "message": "Comment has been successfully deleted"
+            },
+            status=status.HTTP_200_OK
+        )
+

@@ -5,7 +5,9 @@ from authors.apps.articles.views import (
     ArticleRetrieveUpdateDestroy,
     RateArticleView,
     TagsView,
-    VotesView
+    VotesView,
+    CommentCreateList,
+    CommentRetrieveUpdateDestroy,
 )
 from .models import LikeDislike
 from .models import Articles
@@ -46,5 +48,16 @@ urlpatterns = [
             model=Articles
         ),
         name='article_dislike'
+    ),
+    path(
+        'articles/<str:slug>/comments/<int:id>/',
+        CommentCreateList.as_view(),
+        name='comments'
+    ),
+    path(
+        'articles/comments/<int:id>/',
+        CommentRetrieveUpdateDestroy.as_view(),
+        name='crud-comment'
     )
+
 ]

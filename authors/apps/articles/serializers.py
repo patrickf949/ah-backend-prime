@@ -79,6 +79,24 @@ class ArticleSerializer(serializers.ModelSerializer):
                 article.tagsList.add(query_tag[0].id)
         
         return article
+    def get_comments(self, obj):
+        return obj.comment.__all__
+
+class CommentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for comment to an article
+    """
+    author = ProfileSerializer(required=False)
+    article = ArticleSerializer(required=False)
+
+    class Meta:
+        fields = '__all__'
+        model = models.Comment
+        read_only_fields = ['article', 'author', 'parentId']
+    
+    def get_replies(self, obj):
+        return obj.reply.__all__
+
 
 class RateArticleSerializer(serializers.ModelSerializer):
     """
@@ -96,4 +114,3 @@ class RateArticleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                             'Ratings should be numbers between 0-5')
         return value
-        

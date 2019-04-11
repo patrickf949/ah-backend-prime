@@ -37,3 +37,10 @@ INVALID_ARTICLE_2 = {
 	"body": "It all started in 2017 ...",
 	"tags": "supreme"
 }
+
+VALID_COMMENT={
+	"body": "This is a comment"
+}
+VALID_COMMENT_2={
+	"body": "This is an updated comment"
+}
