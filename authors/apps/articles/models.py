@@ -2,6 +2,7 @@ from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from authors.apps.profiles.models import Profile
+from django.contrib.postgres import fields
 
 
 class Articles(models.Model):
@@ -15,6 +16,10 @@ class Articles(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=220)
+    tagsList = models.ManyToManyField(
+        'Tag',
+        related_name='articles'
+    )
     author = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,
@@ -26,6 +31,7 @@ class Articles(models.Model):
 
     @staticmethod
     def get_slug(title):
+        '''Method returns the slag of an article'''
         try:
             id = Articles.objects.latest().id
             return slugify(title + "-" + str(hex(id)))
@@ -43,6 +49,12 @@ class Articles(models.Model):
     def __str__(self):
         return self.title
 
+class Tag(models.Model):
+    tag = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.tag
 
 class ArticleRating(models.Model):
     """

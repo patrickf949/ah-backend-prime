@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import Articles
+from .models import Articles, Tag
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics, response, status
 from authors.apps.profiles.models import Profile
@@ -14,11 +14,12 @@ class ArticleListCreate(generics.ListCreateAPIView):
     queryset = Articles.objects.all()
     serializer_class = serializers.ArticleSerializer
     pagination_class = ArticlePagination
-
-    def post(self, request):
+    
+    def post(self,request):
         article = request.data
-        serializer = self.serializer_class(data=article)
+        serializer = self.serializer_class(data=article, context={'request':request})
         serializer.is_valid(raise_exception=True)
+
         serializer.save(
             author=Profile.objects.filter(
                 user=request.user).first(),
@@ -133,3 +134,9 @@ class RateArticleView(generics.CreateAPIView):
                 {'message': 'thanks for rating this article'},
                 status=status.HTTP_201_CREATED
             )
+
+class TagsView(generics.ListAPIView):
+    '''This class returns all the tags available'''
+    serializer_class = serializers.TagSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Tag.objects.all()

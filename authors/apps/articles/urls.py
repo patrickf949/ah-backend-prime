@@ -3,7 +3,8 @@ from django.urls import path
 from authors.apps.articles.views import (
     ArticleListCreate,
     ArticleRetrieveUpdateDestroy,
-    RateArticleView
+    RateArticleView,
+    TagsView
 )
 
 urlpatterns = [
@@ -22,4 +23,9 @@ urlpatterns = [
         RateArticleView.as_view(),
         name='rate-article'
     ),
+    path(
+        'tags/',
+        TagsView.as_view(),
+        name='tags'
+    )
 ]
