@@ -1,19 +1,19 @@
 from django.shortcuts import render
-from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from rest_framework import status
 from .models import Articles
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework import generics
+from rest_framework import generics, response, status
 from authors.apps.profiles.models import Profile
 from . import serializers
-
+from django.shortcuts import get_object_or_404
+from .pagination import ArticlePagination
 
 class ArticleListCreate(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     queryset = Articles.objects.all()
     serializer_class = serializers.ArticleSerializer
+    pagination_class = ArticlePagination
 
     def post(self, request):
         article = request.data
@@ -36,6 +36,7 @@ class ArticleRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Articles.objects.all()
     serializer_class = serializers.ArticleSerializer
+    pagination_class = ArticlePagination
     lookup_field = 'slug'
 
     def get(self, request, *args, **kwargs):
