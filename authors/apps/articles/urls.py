@@ -4,8 +4,11 @@ from authors.apps.articles.views import (
     ArticleListCreate,
     ArticleRetrieveUpdateDestroy,
     RateArticleView,
-    TagsView
+    TagsView,
+    VotesView
 )
+from .models import LikeDislike
+from .models import Articles
 
 urlpatterns = [
     path(
@@ -27,5 +30,21 @@ urlpatterns = [
         'tags/',
         TagsView.as_view(),
         name='tags'
+    ),
+    path(
+        'articles/<str:slug>/like/',
+        VotesView.as_view(
+            vote_type=LikeDislike.LIKE,
+            model=Articles
+        ),
+        name='article_like'
+    ),
+    path(
+        'articles/<str:slug>/dislike/',
+        VotesView.as_view(
+            vote_type=LikeDislike.DISLIKE,
+            model=Articles
+        ),
+        name='article_dislike'
     )
 ]

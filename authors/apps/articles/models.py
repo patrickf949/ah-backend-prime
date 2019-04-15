@@ -1,9 +1,45 @@
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from authors.apps.profiles.models import Profile
+from authors.apps.authentication.models import User
 from django.contrib.postgres import fields
+from django.contrib.contenttypes.fields import GenericRelation
 
+
+class LikeDislikeManager(models.Manager):
+    '''Model Manager responsible for returning the likes/dislikes'''
+
+    def likes(self):
+        '''We take the queryset with records greater than 0'''
+        return self.get_queryset().filter(vote__gt=0)
+
+    def dislikes(self):
+        '''We take the queryset with records less than 0'''
+        return self.get_queryset().filter(vote__lt=0)
+
+
+
+class LikeDislike(models.Model):
+    '''Model to effeciently handle likes-dislikes with other models'''
+    LIKE = 1
+    DISLIKE = -1
+
+    VOTES = (
+        (DISLIKE, 'Dislike'),
+        (LIKE, 'Like')
+    )
+
+    vote = models.SmallIntegerField(choices=VOTES)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey()
+
+    objects = LikeDislikeManager()
 
 class Articles(models.Model):
     """
@@ -25,6 +61,7 @@ class Articles(models.Model):
         on_delete=models.CASCADE,
         related_name='author'
     )
+    votes = GenericRelation(LikeDislike, related_query_name='articles')
 
     class Meta:
         get_latest_by = ['id']

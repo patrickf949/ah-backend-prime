@@ -25,6 +25,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     author = ProfileSerializer(required=False)
     average_rating = serializers.SerializerMethodField()
     tagList = TagsRelationSerializer(many=True, required=False, source='tagsList')
+    likes = serializers.SerializerMethodField()
+    dislikes = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -36,7 +38,9 @@ class ArticleSerializer(serializers.ModelSerializer):
             'createdAt',
             'updatedAt',
             'slug',
-            'tagList'
+            'tagList',
+            'likes',
+            'dislikes'
         )
         model = models.Articles
         read_only_fields = ['author', 'slug']
@@ -49,6 +53,14 @@ class ArticleSerializer(serializers.ModelSerializer):
         representation['tagList'] = TagSerializer(instance.tagsList,
                                                   many=True).data
         return representation
+
+    def get_likes(self, instance):
+        '''Serializer method to return the number of likes of an article'''
+        return instance.votes.likes().count()
+
+    def get_dislikes(self, instance):
+        '''Serializer method to return the number of dislikes of an article'''
+        return instance.votes.dislikes().count()
 
 
     def create(self, validated_data):

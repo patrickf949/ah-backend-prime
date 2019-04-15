@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import Articles, Tag
+from .models import Articles, Tag, LikeDislike
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics, response, status
 from authors.apps.profiles.models import Profile
 from . import serializers
 from django.shortcuts import get_object_or_404
 from .pagination import ArticlePagination
+from django.contrib.contenttypes.models import ContentType
 
 class ArticleListCreate(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -140,3 +141,31 @@ class TagsView(generics.ListAPIView):
     serializer_class = serializers.TagSerializer
     permission_classes = (IsAuthenticated,)
     queryset = Tag.objects.all()
+
+
+class VotesView(generics.CreateAPIView):
+    '''View that handles the likes and dislikes routes'''
+    serializer_class = serializers.ArticleSerializer
+    model = None
+    vote_type = None
+
+    def post(self, request, slug):
+        '''Post method handles liking and disliking an article'''
+        obj = self.model.objects.get(slug=slug)
+        try:
+            likedislike = LikeDislike.objects.get(
+                content_type=ContentType.objects.get_for_model(obj),
+                object_id=obj.id, user=request.user
+                )
+            if likedislike.vote is not self.vote_type:
+                likedislike.vote = self.vote_type
+                likedislike.save(update_fields=['vote'])
+            else:
+                likedislike.delete()
+
+        except LikeDislike.DoesNotExist:
+            obj.votes.create(user=request.user, vote=self.vote_type)
+
+        serializer = serializers.ArticleSerializer(obj)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
