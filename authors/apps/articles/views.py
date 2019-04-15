@@ -1,13 +1,19 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from .models import Articles, Tag, LikeDislike
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly, 
+                                        AllowAny
+                                        )
 from rest_framework import generics, response, status
 from authors.apps.profiles.models import Profile
 from . import serializers
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 from .pagination import ArticlePagination
 from django.contrib.contenttypes.models import ContentType
+from authors.apps.articles.filters import ArticleFilter
 
 class ArticleListCreate(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -15,8 +21,11 @@ class ArticleListCreate(generics.ListCreateAPIView):
     queryset = Articles.objects.all()
     serializer_class = serializers.ArticleSerializer
     pagination_class = ArticlePagination
-    
-    def post(self,request):
+    filter_class = ArticleFilter
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+    search_fields = ('title', 'body', 'description', 'author__user__username')
+
+    def post(self, request):
         article = request.data
         serializer = self.serializer_class(data=article, context={'request':request})
         serializer.is_valid(raise_exception=True)
@@ -32,7 +41,6 @@ class ArticleListCreate(generics.ListCreateAPIView):
             {"article": serializer.data},
             status=status.HTTP_201_CREATED
         )
-
 
 class ArticleRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)

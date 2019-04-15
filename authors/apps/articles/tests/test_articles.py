@@ -397,3 +397,42 @@ class ArticleCreateTest(ArticlesBaseTest):
         )
         tag_instance = Tag.objects.get(tag='supreme')
         self.assertEqual(str(tag_instance), tag_instance.tag)
+
+    def test_filter_by_author(self):
+        """
+        tests if we can search articles by author's name
+        """
+        token = self.create_user(VALID_USER_DATA)
+        self.client.post(self.create_articles, 
+                        HTTP_AUTHORIZATION=token, 
+                        data=VALID_ARTICLE_3, 
+                        format='json'
+                        )
+        response = self.client.get(reverse('articles')
+                                            + '?author=' + 'anyatijude', 
+                                            format='json', 
+                                            HTTP_AUTHORIZATION=token
+                                            )
+        self.assertEqual(response.status_code,
+                        status.HTTP_200_OK
+                        )
+
+    def test_filter_by_title(self):
+        """
+        tests if we can filter by title
+        """
+        token = self.create_user(VALID_USER_DATA)
+        self.client.post(self.create_articles, 
+                        HTTP_AUTHORIZATION=token, 
+                        data=VALID_ARTICLE_3, 
+                        format='json'
+                        )
+        response = self.client.get(reverse('articles')
+                                            + '?title=' + 'Prime Supreme Legends',
+                                            format=json,
+                                            HTTP_AUTHORIZATION=token
+                                            )
+        self.assertEqual(response.status_code,
+                        status.HTTP_200_OK
+                        )
+
