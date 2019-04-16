@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from . import models
+from .models import Articles, ArticleRating, ReportArticle
 from authors.apps.profiles.serializers import ProfileSerializer
 
 
@@ -116,3 +117,14 @@ class RateArticleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                             'Ratings should be numbers between 0-5')
         return value
+
+class ArticleReportSerializer(serializers.ModelSerializer):
+    """
+    Article reporting serializer class
+    """
+    article = ArticleSerializer(read_only=True)
+    reporter = ProfileSerializer(read_only=True)
+
+    class Meta:
+        model = ReportArticle
+        fields = ('id', 'reporter', 'violation', 'article')

@@ -5,6 +5,13 @@ VALID_USER_DATA = {
         "password": "Password@123"
     }
 }
+VALID_USER_DATA_2 = {
+    "user": {
+        "username": "fitzokou",
+        "email": "fitz@gmail.com",
+        "password": "Password@123"
+    }
+}
 
 EMPTY_USERNAME = {
     "user": {

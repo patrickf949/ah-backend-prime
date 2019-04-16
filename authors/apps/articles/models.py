@@ -152,3 +152,21 @@ class Comment(models.Model):
     def __str__(self):
         return self.body
 
+class ReportArticle(models.Model):
+    """
+    class handling reporting of articles functionality
+    """
+    reporter = models.ForeignKey('profiles.Profile', on_delete=models.CASCADE)
+    article = models.ForeignKey('articles.Articles', on_delete=models.CASCADE)
+    reported_at = models.DateTimeField(auto_now_add=True)
+    violation = models.CharField(max_length=300)
+
+    def __str__(self):
+        return self.violation
+
+    class Meta:
+        ordering = ['-reported_at']
+
+    
+
+

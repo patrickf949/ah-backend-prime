@@ -14,7 +14,9 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from django.shortcuts import get_object_or_404, get_list_or_404
 from .pagination import ArticlePagination
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import send_mail
 from authors.apps.articles.filters import ArticleFilter
+from authors.settings import EMAIL_HOST_USER
 
 class ArticleListCreate(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -296,4 +298,46 @@ class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
             },
             status=status.HTTP_200_OK
         )
+
+class ReportArticleView(generics.GenericAPIView):
+    """
+    class handling the view function for reporting articles
+    """
+
+    serializer_class = serializers.ArticleReportSerializer
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request, slug):
+        reporter = Profile.objects.get(user=request.user)
+        article = Articles.objects.filter(slug=slug).first()
+        
+        data = {
+            "violation": request.data['violation'] if 'violation' in request.data
+            else ''
+            }
+        if reporter == article.author:
+            return Response(
+                            {
+                            "message":
+                            "You are not allowed to report your own article"
+                            },
+                            status=status.HTTP_403_FORBIDDEN
+                            )
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(reporter=reporter, article=article)
+        send_mail(
+                subject = "Article reported as a violation",
+                message = "Your article was reported as a violation. This is the reason: {}".format(data['violation']),
+                from_email = EMAIL_HOST_USER,
+                recipient_list = [article.author.user.email],
+                fail_silently = False
+                )
+        return Response({
+                "message" : 
+                "Your report on this article has been recieved successfully", 
+                "data": serializer.data  
+        }, status=status.HTTP_201_CREATED)
+
+
 
