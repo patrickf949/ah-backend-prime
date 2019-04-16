@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from .models import Articles, Tag, LikeDislike, Comment, FavoriteArticle
 from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly, 
+                                        IsAuthenticatedOrReadOnly,
                                         AllowAny
                                         )
 from rest_framework import generics, response, status
@@ -18,6 +18,7 @@ from django.core.mail import send_mail
 from authors.apps.articles.filters import ArticleFilter
 from authors.settings import EMAIL_HOST_USER
 
+
 class ArticleListCreate(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
@@ -30,7 +31,7 @@ class ArticleListCreate(generics.ListCreateAPIView):
 
     def post(self, request):
         article = request.data
-        serializer = self.serializer_class(data=article, context={'request':request})
+        serializer = self.serializer_class(data=article, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
         serializer.save(
@@ -44,6 +45,7 @@ class ArticleListCreate(generics.ListCreateAPIView):
             {"article": serializer.data},
             status=status.HTTP_201_CREATED
         )
+
 
 class ArticleRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -150,6 +152,7 @@ class RateArticleView(generics.CreateAPIView):
                 status=status.HTTP_201_CREATED
             )
 
+
 class TagsView(generics.ListAPIView):
     '''This class returns all the tags available'''
     serializer_class = serializers.TagSerializer
@@ -170,7 +173,7 @@ class VotesView(generics.CreateAPIView):
             likedislike = LikeDislike.objects.get(
                 content_type=ContentType.objects.get_for_model(obj),
                 object_id=obj.id, user=request.user
-                )
+            )
             if likedislike.vote is not self.vote_type:
                 likedislike.vote = self.vote_type
                 likedislike.save(update_fields=['vote'])
@@ -183,7 +186,8 @@ class VotesView(generics.CreateAPIView):
         serializer = serializers.ArticleSerializer(obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
+
 class CommentCreateList(generics.ListCreateAPIView):
     """
     Handle all crud operations for comments
@@ -191,7 +195,6 @@ class CommentCreateList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.CommentSerializer
     queryset = Comment.objects.all()
-
 
     def post(self, request, **kwargs):
         """
@@ -201,12 +204,12 @@ class CommentCreateList(generics.ListCreateAPIView):
         comment = request.data
         parentId = kwargs.get('id')
         article = get_object_or_404(Articles, slug=slug)
-        if parentId!=0:
+        if parentId != 0:
             get_object_or_404(Comment, id=parentId, article=article)
-        
+
         author = get_object_or_404(Profile, user_id=request.user.id)
         serialised_data = self.serializer_class(data=comment)
-        
+
         serialised_data.is_valid(raise_exception=True)
         serialised_data.save(
             author=author,
@@ -218,8 +221,6 @@ class CommentCreateList(generics.ListCreateAPIView):
             status=status.HTTP_201_CREATED
         )
 
-
-
     def get(self, request, **kwargs):
         """
         Get comments for a particular article
@@ -228,8 +229,8 @@ class CommentCreateList(generics.ListCreateAPIView):
         comments = Comment.objects.filter(
             article_id=(get_object_or_404(
                 Articles, slug=slug,
-                )).pk
-            )
+            )).pk
+        )
         parent_id = kwargs.pop('id')
         if parent_id != 0:
             comments = get_list_or_404(comments, parentId=parent_id)
@@ -283,8 +284,8 @@ class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         comment = self.get_one_comment(kwargs.pop('id'))
-        
-        if request.user.id != comment.author.user.id :
+
+        if request.user.id != comment.author.user.id:
             return Response(
                 {
                     "message": "You do not have permissions to delete this comment"

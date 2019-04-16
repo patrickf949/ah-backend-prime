@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'authors.apps.articles',
     'django_filters',
+    'authors.apps.notification'
 ]
 
 MIDDLEWARE = [

@@ -15,7 +15,7 @@ class TestModel(TestCase):
 
     def test_password_given_on_creating_super_user(self):
         """
-        Method tests if password is provided when registering a superuser
+        Method test if password is provided when registering a superuser
         """
 
         class MockCreateUser:

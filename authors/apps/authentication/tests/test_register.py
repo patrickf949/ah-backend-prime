@@ -18,7 +18,7 @@ from authors.apps.authentication.tests.test_data import (
 
 class UserRegisterTest(BaseTest):
     """
-    contains user login tests method
+    contains user login test method
     """
 
     def test_register_user(self):

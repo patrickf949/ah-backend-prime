@@ -11,20 +11,19 @@ from authors.settings import WORD_LENGTH, WORD_PER_MINUTE
 
 
 class LikeDislikeManager(models.Manager):
-    '''Model Manager responsible for returning the likes/dislikes'''
+    """Model Manager responsible for returning the likes/dislikes"""
 
     def likes(self):
-        '''We take the queryset with records greater than 0'''
+        """We take the queryset with records greater than 0"""
         return self.get_queryset().filter(vote__gt=0)
 
     def dislikes(self):
-        '''We take the queryset with records less than 0'''
+        """We take the queryset with records less than 0"""
         return self.get_queryset().filter(vote__lt=0)
 
 
-
 class LikeDislike(models.Model):
-    '''Model to effeciently handle likes-dislikes with other models'''
+    """Model to efficiently handle likes-dislikes with other models"""
     LIKE = 1
     DISLIKE = -1
 
@@ -41,6 +40,7 @@ class LikeDislike(models.Model):
     content_object = GenericForeignKey()
 
     objects = LikeDislikeManager()
+
 
 class Articles(models.Model):
     """
@@ -66,10 +66,9 @@ class Articles(models.Model):
     class Meta:
         get_latest_by = ['id']
 
-
     @staticmethod
     def get_slug(title):
-        '''Method returns the slag of an article'''
+        """Method returns the slag of an article"""
         try:
             id = Articles.objects.latest().id
             return slugify(title + "-" + str(hex(id)))
@@ -78,16 +77,11 @@ class Articles(models.Model):
 
     @property
     def average_rating(self):
-        ratings = self.articlerating_set.all()\
+        ratings = self.articlerating_set.all() \
             .aggregate(ratings=models.Avg("ratings"))
         if not ratings['ratings']:
             return 0
         return float('%.1f' % ratings['ratings'])
-
-    @property
-    def comments(self):
-        return self.comment_set.all()
-
 
     @property
     def favorite_count(self):
@@ -95,7 +89,6 @@ class Articles(models.Model):
         if not favorites:
             return 0
         return favorites
-
 
     def __str__(self):
         return self.title
@@ -117,12 +110,14 @@ class Articles(models.Model):
             reading_time = " less than a minute read"
         return reading_time
 
+
 class Tag(models.Model):
     tag = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.tag
+
 
 class ArticleRating(models.Model):
     """
@@ -132,6 +127,9 @@ class ArticleRating(models.Model):
     article = models.ForeignKey(Articles, on_delete=models.CASCADE)
     ratings = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '{}'.format(self.ratings)
 
 
 class Comment(models.Model):
@@ -150,16 +148,13 @@ class Comment(models.Model):
         Articles, 
         on_delete=models.CASCADE, 
     )
+
     class Meta:
         get_latest_by = ['createdAt']
 
-
-    @property
-    def reply(self):
-        return self.reply_set.all()
-
     def __str__(self):
         return self.body
+
 
 class ReportArticle(models.Model):
     """
@@ -176,9 +171,6 @@ class ReportArticle(models.Model):
     class Meta:
         ordering = ['-reported_at']
 
-    
-
-
 
 class FavoriteArticle(models.Model):
     """
@@ -194,5 +186,7 @@ class FavoriteArticle(models.Model):
         Articles,
         on_delete=models.CASCADE
     )
+
     def __str__(self):
         return str(self.pk)
+

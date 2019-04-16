@@ -1,6 +1,7 @@
 import re
 from rest_framework import serializers
 
+
 def validate_registration(data):
     '''Function to validate user input from user registration'''
     username = data.get("username", None)
@@ -57,9 +58,9 @@ def validate_registration(data):
                 'password': 'Password length should not be less than 8 characters or greater than 20 characters'
             }
         )
-    elif not re.search("[A-Z]", password)\
-            or not re.search("[0-9]", password)\
-            or not re.search("[a-z]", password)\
+    elif not re.search("[A-Z]", password) \
+            or not re.search("[0-9]", password) \
+            or not re.search("[a-z]", password) \
             or not re.search(r"[~\!@#\$%\^&\*\(\)_\+{}\":;,<>+'\[\]]", password):
         raise serializers.ValidationError(
             {
@@ -72,4 +73,3 @@ def validate_registration(data):
                 'password': 'Password should not contain any spaces'
             }
         )
-

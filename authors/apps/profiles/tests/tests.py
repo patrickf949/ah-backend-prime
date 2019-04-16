@@ -14,7 +14,7 @@ class TestUserProfile(BaseTestProfile):
 
     def test_get_profiles(self):
         """
-        tests if user can return the profile of all users if current user is
+        test if user can return the profile of all users if current user is
         authenticated
         """
         response = self.client.get(
@@ -29,7 +29,7 @@ class TestUserProfile(BaseTestProfile):
 
     def test_get_profiles_not_allowed(self):
         """
-        tests if user cannot return the profile of all users if current user is not
+        test if user cannot return the profile of all users if current user is not
         authenticated
         """
         response = self.client.get(self.profile_url,
@@ -42,7 +42,7 @@ class TestUserProfile(BaseTestProfile):
 
     def test_edit_profile(self):
         """
-        tests if a user can edit his profile
+        test if a user can edit his profile
         """
         url = reverse('update-profile', kwargs={'username': 'anyatijude'})
         response = self.client.put(
@@ -58,7 +58,7 @@ class TestUserProfile(BaseTestProfile):
 
     def test_get_single_profile(self):
         """
-        tests if an authenticated user can get his profile
+        test if an authenticated user can get his profile
         """
         url = reverse('get-profile', kwargs={'username': 'anyatijude'})
         response = self.client.get(
@@ -71,7 +71,7 @@ class TestUserProfile(BaseTestProfile):
 
     def test_edit_not_allowed(self):
         """
-        tests that a user cannot edit profile another person's profile
+        test that a user cannot edit profile another person's profile
         """
         response = self.client.post(
             self.register_url,
@@ -103,7 +103,7 @@ class TestUserProfile(BaseTestProfile):
 
     def test_create_profile(self):
         """
-        tests if a user profile is created
+        test if a user profile is created
         """
         response = self.client.post(
             self.register_url,
@@ -130,7 +130,7 @@ class TestUserProfile(BaseTestProfile):
 
     def test_unauthorised_get_users_list(self):
         """
-        tests if an unauthorised user cannot get the users list
+        test if an unauthorised user cannot get the users list
         """
         response = self.client.get(
             self.user_list_url,

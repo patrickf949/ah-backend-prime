@@ -8,7 +8,7 @@ from django.test import TestCase
 
 class TestLoginSerializer(TestCase):
     """
-    class handling tests on user models/serializers
+    class handling test on user models/serializers
 
     """
 

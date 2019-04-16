@@ -21,7 +21,6 @@ class TagSerializer(serializers.ModelSerializer):
         return instance.tag
 
 
-
 class ArticleSerializer(serializers.ModelSerializer):
     author = ProfileSerializer(required=False)
     average_rating = serializers.SerializerMethodField()
@@ -60,7 +59,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def get_average_rating(self, obj):
         return obj.average_rating
-        
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['tagList'] = TagSerializer(instance.tagsList,
@@ -74,7 +73,6 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_dislikes(self, instance):
         '''Serializer method to return the number of dislikes of an article'''
         return instance.votes.dislikes().count()
-
 
     def create(self, validated_data):
         tags = self.initial_data['tags']
@@ -90,12 +88,12 @@ class ArticleSerializer(serializers.ModelSerializer):
                 article.tagsList.create(tag=tag_name)
             else:
                 article.tagsList.add(query_tag[0].id)
-        
-        return article
 
+        return article
 
     def get_comments(self, obj):
         return obj.comment.__all__
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """
@@ -108,7 +106,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = models.Comment
         read_only_fields = ['article', 'author', 'parentId']
-    
+
     def get_replies(self, obj):
         return obj.reply.__all__
 
@@ -127,7 +125,7 @@ class RateArticleSerializer(serializers.ModelSerializer):
     def validate_ratings(self, value):
         if value < 0 or value > 5:
             raise serializers.ValidationError(
-                            'Ratings should be numbers between 0-5')
+                'Ratings should be numbers between 0-5')
         return value
 
 class ArticleReportSerializer(serializers.ModelSerializer):

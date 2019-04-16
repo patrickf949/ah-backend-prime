@@ -407,7 +407,7 @@ class ArticleCreateTest(ArticlesBaseTest):
 
     def test_filter_by_author(self):
         """
-        tests if we can search articles by author's name
+        test if we can search articles by author's name
         """
         token = self.create_user(VALID_USER_DATA)
         self.client.post(
@@ -427,7 +427,7 @@ class ArticleCreateTest(ArticlesBaseTest):
 
     def test_filter_by_title(self):
         """
-        tests if we can filter by title
+        test if we can filter by title
         """
         token = self.create_user(VALID_USER_DATA)
         self.client.post(
@@ -446,7 +446,7 @@ class ArticleCreateTest(ArticlesBaseTest):
                         )
 
     def test_get_article_with_reading_time(self):
-        """ tests if an article is returned with it's reading_time """
+        """ test if an article is returned with it's reading_time """
         token = self.create_user(VALID_USER_DATA)
         response = self.create_article(
             token=token,
@@ -471,7 +471,7 @@ class ArticleCreateTest(ArticlesBaseTest):
 
     def test_get_article_with_longer_reading_time(self):
         """ 
-        tests if an article is returned with it's reading_time longer
+        test if an article is returned with it's reading_time longer
         than a minute
         """
         token = self.create_user(VALID_USER_DATA)

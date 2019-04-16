@@ -37,5 +37,6 @@ urlpatterns = [
     path('api/v1/', include('authors.apps.authentication.urls')),
     path('api/v1/social/', include('authors.apps.social_auth.urls',)),
     path('api/v1/', include('authors.apps.profiles.urls')),
-    path('api/v1/', include('authors.apps.articles.urls'))
+    path('api/v1/', include('authors.apps.articles.urls')),
+    path('api/v1/', include('authors.apps.notification.urls'))
 ]
