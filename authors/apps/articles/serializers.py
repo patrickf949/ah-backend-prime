@@ -29,9 +29,11 @@ class ArticleSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     dislikes = serializers.SerializerMethodField()
     reading_time = serializers.CharField(max_length=100, read_only=True)
+    favorite_count = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
+            'id',
             'author',
             'title',
             'average_rating',
@@ -43,10 +45,18 @@ class ArticleSerializer(serializers.ModelSerializer):
             'tagList',
             'likes',
             'dislikes',
-            'reading_time'
+            'reading_time',
+            'favorite_count'
         )
         model = models.Articles
         read_only_fields = ['author', 'slug']
+
+
+    def get_favorite_count(self, obj):
+        """
+        get number of times an article has been favorited
+        """
+        return obj.favorite_count
 
     def get_average_rating(self, obj):
         return obj.average_rating
@@ -82,6 +92,8 @@ class ArticleSerializer(serializers.ModelSerializer):
                 article.tagsList.add(query_tag[0].id)
         
         return article
+
+
     def get_comments(self, obj):
         return obj.comment.__all__
 
@@ -128,3 +140,16 @@ class ArticleReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportArticle
         fields = ('id', 'reporter', 'violation', 'article')
+
+
+class FavoriteArticleSerializer(serializers.ModelSerializer):
+    """
+    Article Favoriting serializer
+    """
+    article = ArticleSerializer(required=False)
+    favorited_by = ProfileSerializer(required=False)
+
+    class Meta:
+        fields = '__all__'
+        model = models.FavoriteArticle
+        read_only_fields = ['favorited_by', 'article']

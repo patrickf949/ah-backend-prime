@@ -9,6 +9,8 @@ from authors.apps.articles.views import (
     CommentCreateList,
     CommentRetrieveUpdateDestroy,
     ReportArticleView,
+    FavoriteArticleCreateList,
+    FavoriteArticleDestroy
 )
 from .models import LikeDislike
 from .models import Articles
@@ -63,7 +65,17 @@ urlpatterns = [
     path(
         'articles/<slug>/report/',
         ReportArticleView.as_view(),
-        name='report_article',
+        name='report_article'
+    ),
+    path(
+        'articles/<str:slug>/favorite/',
+        FavoriteArticleCreateList.as_view(),
+        name='favorite-article'
+    ),
+    path(
+        'articles/<str:slug>/unfavorite/',
+        FavoriteArticleDestroy.as_view(),
+        name='unfavorite-article'
     )
 
 ]

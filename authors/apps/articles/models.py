@@ -88,6 +88,15 @@ class Articles(models.Model):
     def comments(self):
         return self.comment_set.all()
 
+
+    @property
+    def favorite_count(self):
+        favorites = FavoriteArticle.objects.filter(article=self).count()
+        if not favorites:
+            return 0
+        return favorites
+
+
     def __str__(self):
         return self.title
 
@@ -170,3 +179,20 @@ class ReportArticle(models.Model):
     
 
 
+
+class FavoriteArticle(models.Model):
+    """
+    Model for favoriting
+    """
+    
+    is_favorite = models.BooleanField(default=False)
+    favorited_by = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE
+    )
+    article = models.ForeignKey(
+        Articles,
+        on_delete=models.CASCADE
+    )
+    def __str__(self):
+        return str(self.pk)

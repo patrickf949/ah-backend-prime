@@ -18,7 +18,7 @@ from authors.apps.profiles.tests.test_data import VALID_USER_DATA_2
 
 class CommentCreateTest(ArticlesBaseTest):
     """
-    Test Activation of users
+    Test Commentin on articles
     """
 
     def test_user_can_comment_on_article_data(self):

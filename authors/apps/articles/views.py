@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import Articles, Tag, LikeDislike, Comment
+from .models import Articles, Tag, LikeDislike, Comment, FavoriteArticle
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, 
                                         AllowAny
@@ -341,3 +341,89 @@ class ReportArticleView(generics.GenericAPIView):
 
 
 
+class FavoriteArticleCreateList(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = FavoriteArticle.objects.all()
+    serializer_class = serializers.FavoriteArticleSerializer
+    profile_serializer_class = serializers.ProfileSerializer
+    article_serializer_class = serializers.ArticleSerializer
+
+
+    def post(self, request, **kwargs):
+        article = get_object_or_404(
+            Articles, 
+            slug=kwargs.get('slug')
+        )
+        favorited_by = get_object_or_404(
+            Profile, 
+            user_id=request.user.id
+        )
+        favorite = FavoriteArticle.objects.filter(
+            favorited_by=favorited_by, 
+            article=article
+        )
+        if not favorite:
+            serializer = self.serializer_class(data={'is_favorite':True})
+            serializer.is_valid(raise_exception=True)
+            serializer.save(
+                article=article,
+                favorited_by=favorited_by
+            )
+            return Response(
+                {"message": "You have favorited "+article.title},
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {"message": "You already favorited this article"},
+            status=status.HTTP_200_OK
+        )
+
+
+    def get(self, request, **kwargs):
+        """
+        Get all users who have favorited a given article
+        """
+        article = Articles.objects.filter(slug=kwargs.pop('slug')).first()
+        if not article:
+            return Response({
+                'message': 'This article does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+        favorites = get_list_or_404(
+            FavoriteArticle,
+            article=article
+        )
+        serialized_favorites = self.serializer_class(favorites, many=True)
+
+        favorited_by = [favorite.get('favorited_by') for favorite in serialized_favorites.data]
+
+        return Response(
+            {'favorited_by' : favorited_by},
+            status=status.HTTP_200_OK
+        )
+
+
+class FavoriteArticleDestroy(generics.DestroyAPIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = FavoriteArticle.objects.all()
+    serializer_class = serializers.FavoriteArticleSerializer
+    lookup_field = 'slug'
+    def delete(self, request, **kwargs):
+        """
+        Unfavorite an article
+        """
+        queryset = FavoriteArticle.objects.filter(favorited_by=Profile.objects.filter(user=request.user).first())
+        queryset = queryset.filter(article_id=(Articles.objects.filter(slug=kwargs.get('slug')).first()).id).first()
+        serializer = serializers.FavoriteArticleSerializer(queryset)
+
+        if not queryset:
+            return Response({
+            'message': 'You have never favorited the article'
+        },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        queryset.delete()
+        return Response({
+            'message': 'You have unfavorited the article'
+        },
+            status=status.HTTP_200_OK
+        )

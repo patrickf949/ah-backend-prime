@@ -3,7 +3,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from authors.apps.authentication.models import User
 
-
 class Profile(models.Model):
     """
     class creating a data model to hold information about users
@@ -18,6 +17,7 @@ class Profile(models.Model):
         related_name='followed_by',
         symmetrical=False
     )
+
 
     def __str__(self):
         return self.user.username

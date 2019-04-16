@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Profile
+from authors.apps.articles.models import FavoriteArticle
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -8,17 +9,21 @@ class ProfileSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(allow_blank=True, required=False)
     followers_no = serializers.SerializerMethodField()
     following_no = serializers.SerializerMethodField()
+    favorite_articles = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Profile
-        fields = ('username',
-                  'bio',
-                  'email',
-                  'full_name',
-                  'image',
-                  'followers_no',
-                  'following_no'
-                  )
+        fields = (
+            'username',
+            'bio',
+            'email',
+            'full_name',
+            'image',
+            'followers_no',
+            'following_no',
+            'favorite_articles'
+        )
         read_only_fields = ('username', )
 
     def check_request(self):
@@ -49,3 +54,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         followee = instance
 
         return Profile.followed_by.through.objects.filter(from_profile_id=followee.pk).count()
+
+
+    def get_favorite_articles(self, instance):
+        """
+        get the favorite articles of a user
+        """
+
+        favorite_articles = FavoriteArticle.objects.filter(favorited_by=instance)
+        if not favorite_articles:
+            return 'No favorite articles'
+        favorite_articles_serialized = []
+        for favorite_article in favorite_articles:
+            article = dict(
+                title=favorite_article.article.title,
+                slug=favorite_article.article.slug,
+                author=favorite_article.article.author.user.username
+            )
+            favorite_articles_serialized.append(article)
+        return favorite_articles_serialized
