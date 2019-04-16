@@ -3,7 +3,7 @@ from rest_framework.test import APIClient, APITestCase
 from authors.apps.authentication.models import User
 from authors.apps.authentication.tests.test_data import VALID_LOGIN_DATA, VALID_USER_DATA
 from authors.apps.authentication.tests.base import BaseTest
-from authors.apps.articles.tests.test_data import VALID_COMMENT, VALID_ARTICLE
+from authors.apps.articles.tests.test_data import VALID_COMMENT, VALID_ARTICLE, VALID_ARTICLE_4
 
 
 class ArticlesBaseTest(BaseTest):
@@ -22,7 +22,6 @@ class ArticlesBaseTest(BaseTest):
             HTTP_AUTHORIZATION=token,
             format='json'
         )
-
 
     def create_comment(self, token, slug, parentId):
         

@@ -27,6 +27,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     tagList = TagsRelationSerializer(many=True, required=False, source='tagsList')
     likes = serializers.SerializerMethodField()
     dislikes = serializers.SerializerMethodField()
+    reading_time = serializers.CharField(max_length=100, read_only=True)
 
     class Meta:
         fields = (
@@ -40,7 +41,8 @@ class ArticleSerializer(serializers.ModelSerializer):
             'slug',
             'tagList',
             'likes',
-            'dislikes'
+            'dislikes',
+            'reading_time'
         )
         model = models.Articles
         read_only_fields = ['author', 'slug']

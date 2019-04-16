@@ -7,6 +7,7 @@ from authors.apps.profiles.models import Profile
 from authors.apps.authentication.models import User
 from django.contrib.postgres import fields
 from django.contrib.contenttypes.fields import GenericRelation
+from authors.settings import WORD_LENGTH, WORD_PER_MINUTE
 
 
 class LikeDislikeManager(models.Manager):
@@ -89,6 +90,23 @@ class Articles(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def reading_time(self):
+        """ method estimating the reading time of an article
+        by counting words
+        params:
+            - count: number of words in text, initialised to 0
+            - result: time it takes a user to read the text
+        """
+        count = 0
+        count += len(self.body) / WORD_LENGTH
+        result = int(count / WORD_PER_MINUTE)
+        if result >= 1:
+            reading_time = str(result) + " minute read"
+        else:
+            reading_time = " less than a minute read"
+        return reading_time
 
 class Tag(models.Model):
     tag = models.CharField(max_length=255, unique=True)

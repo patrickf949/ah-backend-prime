@@ -4,7 +4,14 @@ from .base import BaseTest
 from rest_framework import status, response
 from django.urls import reverse
 from .base import ArticlesBaseTest
-from .test_data import VALID_ARTICLE, INVALID_ARTICLE, VALID_UPDATE_ARTICLE, VALID_ARTICLE_2, INVALID_ARTICLE_2, VALID_ARTICLE_3
+from .test_data import (VALID_ARTICLE, 
+                        INVALID_ARTICLE, 
+                        VALID_UPDATE_ARTICLE, 
+                        VALID_ARTICLE_2, 
+                        INVALID_ARTICLE_2, 
+                        VALID_ARTICLE_3, 
+                        VALID_ARTICLE_4
+                        )
 from authors.apps.authentication.tests.test_data import (
     VALID_USER_DATA,
     VALID_LOGIN_DATA
@@ -403,7 +410,8 @@ class ArticleCreateTest(ArticlesBaseTest):
         tests if we can search articles by author's name
         """
         token = self.create_user(VALID_USER_DATA)
-        self.client.post(self.create_articles, 
+        self.client.post(
+                        self.create_articles, 
                         HTTP_AUTHORIZATION=token, 
                         data=VALID_ARTICLE_3, 
                         format='json'
@@ -422,7 +430,8 @@ class ArticleCreateTest(ArticlesBaseTest):
         tests if we can filter by title
         """
         token = self.create_user(VALID_USER_DATA)
-        self.client.post(self.create_articles, 
+        self.client.post(
+                        self.create_articles, 
                         HTTP_AUTHORIZATION=token, 
                         data=VALID_ARTICLE_3, 
                         format='json'
@@ -435,4 +444,57 @@ class ArticleCreateTest(ArticlesBaseTest):
         self.assertEqual(response.status_code,
                         status.HTTP_200_OK
                         )
+
+    def test_get_article_with_reading_time(self):
+        """ tests if an article is returned with it's reading_time """
+        token = self.create_user(VALID_USER_DATA)
+        response = self.create_article(
+            token=token,
+            article=VALID_ARTICLE
+        )
+        get_article_url = reverse(
+            'crud-article', kwargs={
+            'slug': response.data['article']['slug']
+        }
+        )
+        response = self.client.get(
+            get_article_url
+        )
+        self.assertIn(
+                    'less than a minute read', 
+                    response.data['article']['reading_time']
+                    )
+        self.assertEqual(
+                        response.status_code, 
+                        status.HTTP_200_OK
+                        )
+
+    def test_get_article_with_longer_reading_time(self):
+        """ 
+        tests if an article is returned with it's reading_time longer
+        than a minute
+        """
+        token = self.create_user(VALID_USER_DATA)
+        res = self.client.post(
+                        self.create_articles, 
+                        HTTP_AUTHORIZATION=token, 
+                        data=VALID_ARTICLE_4, 
+                        format='json'
+                        )
+        get_article_url = reverse('crud-article', kwargs={
+            'slug': res.data['article']['slug']
+        }
+        )
+        response = self.client.get(
+            get_article_url
+        )
+        self.assertIn(
+                    'minute read', 
+                    response.data['article']['reading_time']
+                    )
+        self.assertEqual(
+                        response.status_code, 
+                        status.HTTP_200_OK
+                        )
+
 

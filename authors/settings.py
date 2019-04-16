@@ -156,4 +156,10 @@ TWITTER_CONSUMER_API_KEY = os.environ.get('TWITTER_CONSUMER_API_KEY')
 TWITTER_CONSUMER_API_SECRET = os.environ.get('TWITTER_CONSUMER_API_SECRET')
 SOCIAL_PASSWORD = os.environ.get('SOCIAL_PASSWORD')
 
+# Article reading time configurations
+# Number of words proccesed by an average adult in a minute
+WORD_PER_MINUTE = 265
+# Each word is standardized to be five characters long.
+WORD_LENGTH = 5
+
 django_heroku.settings(locals())
