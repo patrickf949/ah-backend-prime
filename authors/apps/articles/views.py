@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render
 from rest_framework.response import Response
 from .models import Articles, Tag, LikeDislike, Comment, FavoriteArticle
@@ -268,11 +269,21 @@ class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        if updated_comment['body'] == comment.body:
+            return Response(
+                {'message': 'No changes made to the comment'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        updated_comment['commentHistory'] = (
+            comment.commentHistory+" \n[" + \
+            str(comment.updatedAt) + "]'s version\n" + \
+            comment.body
+        )
         serializer = self.serializer_class(
             comment,
             updated_comment,
             partial=True,
-
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -281,6 +292,7 @@ class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
             serializer.data,
             status=status.HTTP_200_OK
         )
+
 
     def delete(self, request, *args, **kwargs):
         comment = self.get_one_comment(kwargs.pop('id'))

@@ -148,6 +148,7 @@ class Comment(models.Model):
         Articles, 
         on_delete=models.CASCADE, 
     )
+    commentHistory = models.TextField(default="")
 
     class Meta:
         get_latest_by = ['createdAt']

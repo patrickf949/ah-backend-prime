@@ -124,6 +124,38 @@ class ArticleFavorite(ArticlesBaseTest):
         )
 
 
+    def test_user_can_get_users_who_favorited_invalid_article(self):
+        """
+        user can get all users who favorited a non existent article
+        """
+        token = self.create_user(VALID_USER_DATA)
+        response = self.create_article(VALID_ARTICLE, token)
+        slug = response.data['article']['slug']
+        favorite_comment_url = reverse(
+            'favorite-article', 
+            kwargs={'slug': slug}
+        )
+        response = self.client.post(
+            favorite_comment_url,
+            HTTP_AUTHORIZATION=token
+        )
+        get_users_who_favorited_url = reverse(
+            'favorite-article', 
+            kwargs={'slug': 'non-existent-article-0x3'}
+        )
+        response = self.client.get(
+            get_users_who_favorited_url,
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND            
+        )
+        self.assertEqual(
+            response.data['message'],
+            'This article does not exist'            
+        )
+
+
     def test_unfavorite_an_article_without_favoriting(self):
         """
         Unfavorite an article without having favorited it before

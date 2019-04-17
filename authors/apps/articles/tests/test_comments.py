@@ -172,7 +172,7 @@ class CommentCreateTest(ArticlesBaseTest):
 
     def test_user_can_update_their_comment(self):
         """
-        user can delete comments for an article
+        user can update their comments for an article
         """
         token = self.create_user(VALID_USER_DATA)
         response = self.create_article(VALID_ARTICLE, token)
@@ -194,6 +194,80 @@ class CommentCreateTest(ArticlesBaseTest):
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
+        )
+        self.assertIn(
+            'version',
+            response.data['commentHistory'],
+        )
+
+    def test_user_can_update_their_comment_with_same_data(self):
+        """
+        user can update their comments for an article
+        """
+        token = self.create_user(VALID_USER_DATA)
+        response = self.create_article(VALID_ARTICLE, token)
+
+        response = self.create_comment(
+            token=token,
+            parentId=0,
+            slug=response.data['article']['slug']
+        )
+        get_comment_url = reverse('crud-comment', kwargs={
+            'id': response.data['comment']['id']
+        })
+        response = self.client.put(
+            get_comment_url,
+            HTTP_AUTHORIZATION=token,
+            data=VALID_COMMENT,
+            format='json'
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(
+            response.data['message'],
+            'No changes made to the comment'
+        )
+
+
+    def test_users_can_track_edit_history(self):
+        """
+        User can view the edit history from a comment
+        """
+        token = self.create_user(VALID_USER_DATA)
+        response = self.create_article(VALID_ARTICLE, token)
+
+        response = self.create_comment(
+            token=token,
+            parentId=0,
+            slug=response.data['article']['slug']
+        )
+        update_comment_url = reverse('crud-comment', kwargs={
+            'id': response.data['comment']['id']
+        })
+        response = self.client.put(
+            update_comment_url,
+            HTTP_AUTHORIZATION=token,
+            data=VALID_COMMENT_2,
+            format='json'
+        )
+        get_comment_url = reverse(
+            'crud-comment',
+            kwargs={'id':response.data['id']}
+        )
+        token2 = self.create_user(VALID_USER_DATA_2)
+        response = self.client.get(
+            get_comment_url,
+            HTTP_AUTHORIZATION=token2
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertIn(
+            'version',
+            response.data['commentHistory'],
         )
 
 
@@ -223,4 +297,32 @@ class CommentCreateTest(ArticlesBaseTest):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN
+        )
+
+
+    def test_user_can_get_comments_of_invalid_article(self):
+        """
+        User can retrieve comments of invalid article
+        """
+        token = self.create_user(VALID_USER_DATA)
+        response = self.create_article(VALID_ARTICLE, token)
+
+        response = self.create_comment(
+            token=token,
+            parentId=0,
+            slug=response.data['article']['slug']
+        )
+        token = self.create_user(VALID_USER_DATA_2)
+
+        get_comment_url = reverse('comments', kwargs={
+            'slug': 'random-non-existent-article-0x3',
+            'id': 0
+        })
+        response = self.client.get(
+            get_comment_url,
+            HTTP_AUTHORIZATION=token,
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND
         )
