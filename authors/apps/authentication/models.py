@@ -112,12 +112,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         method sets token as a dynamic property allowing us to get a user's
         token by calling user.token instead of calling the user.generated_jwt_token()
         """
-        return self.generated_jwt_token
+        return self.generated_jwt_token()
 
     def generated_jwt_token(self):
         """
         This method generates a JWT token that stores a user
-        
+
         """
         exp_time = datetime.now() + timedelta(hours=3)
         token = jwt.encode({
@@ -138,7 +138,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             domain = str(link) + str(url)
             send_mail(
                 subject=instance.username + " Welcome to Author's Haven",
-                message="Welcome to Author's Haven." + \
+                message="Welcome to Author's Haven." +
                         "\nLogin using this link\nhttp://" + domain,
                 from_email=EMAIL_HOST_USER,
                 recipient_list=[instance.email],
@@ -161,7 +161,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         activate_url = get_current_site(current_url).domain + url
         email_subject = "Author haven password reset"
         email_message = 'hi {} please follow the link ' \
-                        'below to reset  your account\n'.format(self.username) + activate_url
+                        'below to reset  your account\n'.format(
+                            self.username) + activate_url
         send_mail(subject=email_subject,
                   message=email_message,
                   recipient_list=[self.email, ],

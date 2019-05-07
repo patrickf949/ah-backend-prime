@@ -2,7 +2,7 @@ VALID_USER_DATA = {
     "user": {
         "username": "anyatijude",
         "email": "anyatibrian@glo.com",
-        "password": "Password@123"
+        "password": "1234!@#$Aa"
     }
 }
 VALID_USER_DATA_2 = {
@@ -17,7 +17,7 @@ EMPTY_USERNAME = {
     "user": {
         "username": "",
         "email": "anyatijude@glo.com",
-        "password": "Password@123"
+        "password": "1234!@#$Aa"
     }
 }
 
@@ -25,7 +25,7 @@ INVALID_USERNAME = {
     "user": {
         "username": "fds",
         "email": "anyatijude@glo.com",
-        "password": "Password@123"
+        "password": "1234!@#$Aa"
     }
 }
 
@@ -33,7 +33,7 @@ EMPTY_EMAIL = {
     "user": {
         "username": "anyatijude",
         "email": "",
-        "password": "Password@123"
+        "password": "1234!@#$Aa"
     }
 }
 
@@ -90,13 +90,13 @@ INVALID_EMAIL = {
     "user": {
         "username": "anyatijude",
         "email": "anyatij",
-        "password": "Password@123"
+        "password": "1234!@#$Aa"
     }
 }
 VALID_LOGIN_DATA = {
     "user": {
         "email": "anyatibrian@glo.com",
-        "password": "Password@123"
+        "password": "1234!@#$Aa"
     }
 }
 LOGIN_RESPONSE = {'email': 'anyatijude@glo.com', 'username': 'anyatijude'}
@@ -104,7 +104,7 @@ LOGIN_RESPONSE = {'email': 'anyatijude@glo.com', 'username': 'anyatijude'}
 EMPTY_LOGIN_EMAIL = {
     "user": {
         "email": "",
-        "password": "Password@123"
+        "password": "1234!@#$Aa"
     }
 }
 
@@ -115,7 +115,7 @@ EMPTY_LOGIN_PASSWORD = {
     }
 }
 
-ERROR_LOGIN ={
+ERROR_LOGIN = {
     "errors": {
         "error": [
             "A user with this email and password was not found."
@@ -128,8 +128,8 @@ EMAIL_ACTIVATION_DATA = {
 }
 
 PASSWORD_RESET_DATA = {
-    "password":"password@123",
-    "confirmpassword":"password@123"
+    "password": "1234!@#$Aa",
+    "confirmpassword": "1234!@#$Aa"
 }
 NO_SOCIAL_EMAIL_DATA = {
     'username': 'testname',
