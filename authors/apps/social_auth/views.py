@@ -8,35 +8,41 @@ from authors.apps.social_auth.serializers import FacebookAuthSerializer, GoogleA
 
 class TwitterAuthView(GenericAPIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (UserJSONRenderer,)
     serializer_class = TwitterAuthSerializer
 
     def post(self, request):
         user = request.data.get('user_token', {})
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = serializer.validated_data
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class FacebookAuthView(GenericAPIView):
     permission_classes = (AllowAny,)
-    renderer_classes = (UserJSONRenderer,)
     serializer_class = FacebookAuthSerializer
 
     def post(self, request):
         user = request.data.get('user_token', {})
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = serializer.validated_data
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class GoogleAuthView(GenericAPIView):
+    """
+    class that handles authentication through Google+
+    """
     permission_classes = (AllowAny,)
-    renderer_classes = (UserJSONRenderer,)
     serializer_class = GoogleAuthSerializer
 
     def post(self, request):
+        """
+        Post method that handles registration of user on system
+        """
         user = request.data.get('user_token', {})
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = serializer.validated_data
+        return Response(data, status=status.HTTP_200_OK)

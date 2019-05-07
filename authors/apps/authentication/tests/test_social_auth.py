@@ -72,10 +72,10 @@ class SocialAuthRegistration(BaseTest):
                 }
 
         with patch('authors.apps.social_auth.google_auth.id_token', new_callable=MockGoogleAuth):
-            response = self.client.post('/api/v1/social/auth/google/', INVALID_GOOGLE_TOKEN, format='json')
-            self.assertEqual(response.data['auth_token'],
-                             "{'email': 'test@email.com', 'username': 'testname', 'token': <bound method "
-                             "User.generated_jwt_token of <User: test@email.com>>}")
+            response = self.client.post(
+                '/api/v1/social/auth/google/', INVALID_GOOGLE_TOKEN, format='json')
+            self.assertEqual(
+                response.data['auth_token']['email'], "test@email.com")
 
     def test_valid_facebook_token(self):
         """'Tests for successful registration using facebook social auth"""
@@ -96,9 +96,10 @@ class SocialAuthRegistration(BaseTest):
                 return self
 
         with patch('authors.apps.social_auth.facebook_auth.facebook.GraphAPI', new_callable=MockFacebookAuth):
-            response = self.client.post('/api/v1/social/auth/facebook/', INVALID_FACEBOOK_TOKEN, format='json')
-            self.assertEqual(response.data['auth_token'],
-                             "{'email': 'facebook@email.com', 'username': 'facebookname', 'token': <bound method User.generated_jwt_token of <User: facebook@email.com>>}")
+            response = self.client.post(
+                '/api/v1/social/auth/facebook/', INVALID_FACEBOOK_TOKEN, format='json')
+            self.assertEqual(
+                response.data['auth_token']['email'], "facebook@email.com")
 
     def test_no_email_address_in_user_data(self):
         """Tests for their being no email address in decoded token information"""
@@ -115,14 +116,10 @@ class SocialAuthRegistration(BaseTest):
                 }
 
         with patch('authors.apps.social_auth.google_auth.id_token', new_callable=MockGoogleAuth):
-            response = self.client.post('/api/v1/social/auth/google/', INVALID_GOOGLE_TOKEN, format='json')
-            self.assertEqual(response.data['auth_token'], "Email address not provided!")
-
-    def test_social_registration_with_existing_user(self):
-        """Tests for registering a user using social auth that already exists in app DB"""
-        self.create_user(VALID_USER_DATA)
-        response = register_user(VALID_USER_DATA['user']['email'], 'username')
-        self.assertEqual(response, 'This email address already exists! Please log in!')
+            response = self.client.post(
+                '/api/v1/social/auth/google/', INVALID_GOOGLE_TOKEN, format='json')
+            self.assertEqual(
+                response.data['auth_token'], "Email address not provided!")
 
     def test_social_registration_with_empty_email_field(self):
         """Tests for data from decoded token containing no email address"""
