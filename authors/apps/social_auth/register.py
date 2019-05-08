@@ -27,9 +27,12 @@ def register_user(email, username):
         }
         return data
     else:
-        registered_user = authenticate(email=email, password=password)
-        return {
-            'email': registered_user.email,
-            'username': registered_user.username,
-            'token': registered_user.token,
-        }
+        try:
+            registered_user = authenticate(email=email, password=password)
+            return {
+                'email': registered_user.email,
+                'username': registered_user.username,
+                'token': registered_user.token,
+            }
+        except:
+            return "Kindly log In using the application."

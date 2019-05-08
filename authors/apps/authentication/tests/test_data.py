@@ -5,6 +5,15 @@ VALID_USER_DATA = {
         "password": "1234!@#$Aa"
     }
 }
+
+VALID_USER_DATA_FOR_USER = {
+    "user": {
+        "username": "anyatijude",
+        "email": "anyatibrian@glo.com",
+        "password": "Password@123"
+    }
+}
+
 VALID_USER_DATA_2 = {
     "user": {
         "username": "fitzokou",
@@ -97,6 +106,12 @@ VALID_LOGIN_DATA = {
     "user": {
         "email": "anyatibrian@glo.com",
         "password": "1234!@#$Aa"
+    }
+}
+VALID_LOGIN_DATA_FOR_USER = {
+    "user": {
+        "email": "anyatibrian@glo.com",
+        "password": "Password@123"
     }
 }
 LOGIN_RESPONSE = {'email': 'anyatijude@glo.com', 'username': 'anyatijude'}
