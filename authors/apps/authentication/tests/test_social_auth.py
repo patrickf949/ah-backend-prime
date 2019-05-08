@@ -11,7 +11,10 @@ from .test_data import (
     VALID_USER_DATA,
     NO_SOCIAL_EMAIL_DATA,
     EMPTY_SOCIAL_EMAIL_DATA,
-    VALID_SOCIAL_DATA
+    VALID_SOCIAL_DATA,
+    VALID_LOGIN_DATA,
+    VALID_USER_DATA_FOR_USER,
+    VALID_LOGIN_DATA_FOR_USER
 )
 
 
@@ -76,6 +79,32 @@ class SocialAuthRegistration(BaseTest):
                 '/api/v1/social/auth/google/', INVALID_GOOGLE_TOKEN, format='json')
             self.assertEqual(
                 response.data['auth_token']['email'], "test@email.com")
+
+    def test_already_registered_user_social_login(self):
+        self.create_user(VALID_USER_DATA_FOR_USER)
+        response = self.client.post(
+            self.login_url,
+            data=VALID_LOGIN_DATA_FOR_USER,
+            format='json'
+        )
+
+        class MockGoogleAuth:
+
+            @classmethod
+            def verify_oauth2_token(cls, token, request):
+                """Method Returns dummy google user decoded info"""
+                return {
+                    'iss': 'accounts.google.com',
+                    'email': 'anyatibrian@glo.com',
+                    'name': 'anyatijudee',
+                    'sub': '117589369073046072597'
+                }
+
+        with patch('authors.apps.social_auth.google_auth.id_token', new_callable=MockGoogleAuth):
+            response = self.client.post(
+                '/api/v1/social/auth/google/', INVALID_GOOGLE_TOKEN, format='json')
+        self.assertEqual(
+            response.data['auth_token'], "Kindly log In using the application.")
 
     def test_valid_facebook_token(self):
         """'Tests for successful registration using facebook social auth"""
