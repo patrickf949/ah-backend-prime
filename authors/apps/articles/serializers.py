@@ -24,7 +24,8 @@ class TagSerializer(serializers.ModelSerializer):
 class ArticleSerializer(serializers.ModelSerializer):
     author = ProfileSerializer(required=False)
     average_rating = serializers.SerializerMethodField()
-    tagList = TagsRelationSerializer(many=True, required=False, source='tagsList')
+    tagList = TagsRelationSerializer(
+        many=True, required=False, source='tagsList')
     likes = serializers.SerializerMethodField()
     dislikes = serializers.SerializerMethodField()
     reading_time = serializers.CharField(max_length=100, read_only=True)
@@ -38,6 +39,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'average_rating',
             'description',
             'body',
+            'image',
             'createdAt',
             'updatedAt',
             'slug',
@@ -49,7 +51,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         )
         model = models.Articles
         read_only_fields = ['author', 'slug']
-
 
     def get_favorite_count(self, obj):
         """
@@ -115,7 +116,8 @@ class RateArticleSerializer(serializers.ModelSerializer):
     """
     rating serializer class
     """
-    tagList = TagsRelationSerializer(many=True, required=False, source='tagsList')
+    tagList = TagsRelationSerializer(
+        many=True, required=False, source='tagsList')
 
     class Meta:
         model = models.ArticleRating
@@ -127,6 +129,7 @@ class RateArticleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Ratings should be numbers between 0-5')
         return value
+
 
 class ArticleReportSerializer(serializers.ModelSerializer):
     """

@@ -11,7 +11,7 @@ from authors.settings import WORD_LENGTH, WORD_PER_MINUTE
 
 
 class LikeDislikeManager(models.Manager):
-    """Model Manager responsible for returning the likes/dislikes"""
+    """Model responsible for returning the likes/dislikes"""
 
     def likes(self):
         """We take the queryset with records greater than 0"""
@@ -44,7 +44,7 @@ class LikeDislike(models.Model):
 
 class Articles(models.Model):
     """
-    Create models for Article storage
+    Create model for Article storage
     """
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
@@ -52,6 +52,7 @@ class Articles(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=220)
+    image = models.CharField(max_length=300, blank=True)
     tagsList = models.ManyToManyField(
         'Tag',
         related_name='articles'
@@ -141,12 +142,12 @@ class Comment(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(
-        Profile, 
-        on_delete=models.CASCADE,      
+        Profile,
+        on_delete=models.CASCADE,
     )
     article = models.ForeignKey(
-        Articles, 
-        on_delete=models.CASCADE, 
+        Articles,
+        on_delete=models.CASCADE,
     )
     commentHistory = models.TextField(default="")
 
@@ -177,7 +178,7 @@ class FavoriteArticle(models.Model):
     """
     Model for favoriting
     """
-    
+
     is_favorite = models.BooleanField(default=False)
     favorited_by = models.ForeignKey(
         Profile,
@@ -190,4 +191,3 @@ class FavoriteArticle(models.Model):
 
     def __str__(self):
         return str(self.pk)
-
