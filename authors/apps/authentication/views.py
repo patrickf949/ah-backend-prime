@@ -1,5 +1,8 @@
 import jwt
 import os
+
+from django.http import HttpResponseRedirect
+
 from authors.settings import SECRET_KEY
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
@@ -56,18 +59,12 @@ class ActivateUserAPIView(GenericAPIView):
             SECRET_KEY
         )
         activateUser = User.objects.filter(pk=user['id']).first()
-
+        domain = os.environ.get('FRONT_END_URL', 'local')
         if not activateUser.is_active:
             activateUser.is_active = True
             activateUser.save()
-            return Response({
-                'message': 'your account has been activated successfully please login',
-                'user': user
-            }, status=status.HTTP_202_ACCEPTED)
-
-        return Response({
-            'message': 'your account is already active please login'
-        }, status=status.HTTP_202_ACCEPTED)
+            # redirect page
+        return HttpResponseRedirect(domain)
 
 
 class LoginAPIView(GenericAPIView):
