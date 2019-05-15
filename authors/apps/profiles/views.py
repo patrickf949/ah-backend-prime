@@ -25,8 +25,10 @@ class ListProfileView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = Profile.objects.all()
-        serializer = self.serializer_class(queryset, many=True, context={'request': request})
+        serializer = self.serializer_class(
+            queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class UpdateProfileView(GenericAPIView):
     """
@@ -34,7 +36,7 @@ class UpdateProfileView(GenericAPIView):
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsOwnerOrReadOnly,]
+    permission_classes = [IsOwnerOrReadOnly, ]
     renderer_classes = (ProfileJSONRenderer,)
     lookup_field = "username"
 
@@ -62,6 +64,7 @@ class UpdateProfileView(GenericAPIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+
 class ProfileRetrieveAPIView(GenericAPIView):
     """
     class handling returning the profile of a single user
@@ -76,11 +79,13 @@ class ProfileRetrieveAPIView(GenericAPIView):
         profile = Profile.objects.select_related('user').get(
             user__username=username)
         following = str(profile.is_followed_by(follower))
-        serializer = self.serializer_class(profile, context={'request': request})
+        serializer = self.serializer_class(
+            profile, context={'request': request})
         data = serializer.data
         data.update({"following": following})
         profile = {'profile': data}
         return Response(profile, status=status.HTTP_200_OK)
+
 
 class UserListAPIView(GenericAPIView):
     """
@@ -102,7 +107,6 @@ class ProfileFollowAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (ProfileJSONRenderer,)
 
-
     def delete(self, request, username=None):
         '''This function enables one to unfollow a user'''
         follower = self.request.user.profile
@@ -116,7 +120,8 @@ class ProfileFollowAPIView(GenericAPIView):
             raise serializers.ValidationError('You can not unfollow yourself.')
 
         if not follower.is_following(followee):
-            raise serializers.ValidationError(f'You do not follow {followee.user.username}')
+            raise serializers.ValidationError(
+                f'You do not follow {followee.user.username}')
 
         follower.unfollow(followee)
 
@@ -124,7 +129,6 @@ class ProfileFollowAPIView(GenericAPIView):
             {"message": f"You have unfollowed {followee.user.username}"},
             status=status.HTTP_200_OK
         )
-
 
     def post(self, request, username=None):
         '''This function enables one to follow a user'''
@@ -147,3 +151,31 @@ class ProfileFollowAPIView(GenericAPIView):
             {"message": f"You are now following {followee.user.username}"},
             status=status.HTTP_201_CREATED
         )
+
+
+class UserFollowing(GenericAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (ProfileJSONRenderer,)
+
+    def get(self, request, username=None):
+        '''Method gets users profiles a user follows'''
+        user = Profile.objects.get(user__username=username)
+        queryset = Profile.objects.filter(followed_by=user.pk)
+        serializer = self.serializer_class(
+            queryset, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserFollowers(GenericAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (ProfileJSONRenderer,)
+
+    def get(self, request, username=None):
+        '''Method gets users profiles that follow a user'''
+        user = Profile.objects.get(user__username=username)
+        queryset = Profile.objects.filter(follows=user.pk)
+        serializer = self.serializer_class(
+            queryset, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

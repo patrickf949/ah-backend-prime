@@ -11,7 +11,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     following_no = serializers.SerializerMethodField()
     favorite_articles = serializers.SerializerMethodField()
 
-
     class Meta:
         model = Profile
         fields = (
@@ -35,7 +34,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         if not request.user.is_authenticated:
             return False
-
 
     def get_followers_no(self, instance):
         '''Method calculates the number of users a user follows'''
@@ -61,7 +59,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         get the favorite articles of a user
         """
 
-        favorite_articles = FavoriteArticle.objects.filter(favorited_by=instance)
+        favorite_articles = FavoriteArticle.objects.filter(
+            favorited_by=instance)
         if not favorite_articles:
             return 'No favorite articles'
         favorite_articles_serialized = []
