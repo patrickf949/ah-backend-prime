@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from authors.apps.authentication.models import User
 
+
 class Profile(models.Model):
     """
     class creating a data model to hold information about users
@@ -17,7 +18,6 @@ class Profile(models.Model):
         related_name='followed_by',
         symmetrical=False
     )
-
 
     def __str__(self):
         return self.user.username
@@ -37,6 +37,7 @@ class Profile(models.Model):
     def is_followed_by(self, profile):
         """Returns True if profile is following us; False otherwise."""
         return self.followed_by.filter(pk=profile.pk).exists()
+        
 
 
 @receiver(post_save, sender=User)
