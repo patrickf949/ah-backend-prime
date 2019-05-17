@@ -158,7 +158,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         method that sends mail to the user
         """
         url = reverse('password-reset', args=[token])
-        activate_url = get_current_site(current_url).domain + url
+        print("token", url)
+        activate_url = current_url.META.get('HTTP_ORIGIN', get_current_site(current_url).domain)+"/"+token+"/passwordreset"
+        #activate_url = (get_current_site(current_url).domain + url)
         email_subject = "Author haven password reset"
         email_message = 'hi {} please follow the link ' \
                         'below to reset  your account\n'.format(
