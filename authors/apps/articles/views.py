@@ -28,11 +28,13 @@ class ArticleListCreate(generics.ListCreateAPIView):
     pagination_class = ArticlePagination
     filter_class = ArticleFilter
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    search_fields = ('title', 'body', 'description', 'author__user__username')
+    search_fields = ('title', 'body', 'description',
+                     'author__user__username', 'author__user__email')
 
     def post(self, request):
         article = request.data
-        serializer = self.serializer_class(data=article, context={'request': request})
+        serializer = self.serializer_class(
+            data=article, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
         serializer.save(
@@ -276,8 +278,8 @@ class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
             )
 
         updated_comment['commentHistory'] = (
-            comment.commentHistory+" \n[" + \
-            str(comment.updatedAt) + "]'s version\n" + \
+            comment.commentHistory+" \n[" +
+            str(comment.updatedAt) + "]'s version\n" +
             comment.body
         )
         serializer = self.serializer_class(
@@ -292,7 +294,6 @@ class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
             serializer.data,
             status=status.HTTP_200_OK
         )
-
 
     def delete(self, request, *args, **kwargs):
         comment = self.get_one_comment(kwargs.pop('id'))
@@ -312,6 +313,7 @@ class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
             status=status.HTTP_200_OK
         )
 
+
 class ReportArticleView(generics.GenericAPIView):
     """
     class handling the view function for reporting articles
@@ -323,35 +325,35 @@ class ReportArticleView(generics.GenericAPIView):
     def post(self, request, slug):
         reporter = Profile.objects.get(user=request.user)
         article = Articles.objects.filter(slug=slug).first()
-        
+
         data = {
             "violation": request.data['violation'] if 'violation' in request.data
             else ''
-            }
+        }
         if reporter == article.author:
             return Response(
-                            {
-                            "message":
-                            "You are not allowed to report your own article"
-                            },
-                            status=status.HTTP_403_FORBIDDEN
-                            )
+                {
+                    "message":
+                    "You are not allowed to report your own article"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save(reporter=reporter, article=article)
         send_mail(
-                subject = "Article reported as a violation",
-                message = "Your article was reported as a violation. This is the reason: {}".format(data['violation']),
-                from_email = EMAIL_HOST_USER,
-                recipient_list = [article.author.user.email],
-                fail_silently = False
-                )
+            subject="Article reported as a violation",
+            message="Your article was reported as a violation. This is the reason: {}".format(
+                data['violation']),
+            from_email=EMAIL_HOST_USER,
+            recipient_list=[article.author.user.email],
+            fail_silently=False
+        )
         return Response({
-                "message" : 
-                "Your report on this article has been recieved successfully", 
-                "data": serializer.data  
+            "message":
+                "Your report on this article has been recieved successfully",
+                "data": serializer.data
         }, status=status.HTTP_201_CREATED)
-
 
 
 class FavoriteArticleCreateList(generics.ListCreateAPIView):
@@ -361,22 +363,21 @@ class FavoriteArticleCreateList(generics.ListCreateAPIView):
     profile_serializer_class = serializers.ProfileSerializer
     article_serializer_class = serializers.ArticleSerializer
 
-
     def post(self, request, **kwargs):
         article = get_object_or_404(
-            Articles, 
+            Articles,
             slug=kwargs.get('slug')
         )
         favorited_by = get_object_or_404(
-            Profile, 
+            Profile,
             user_id=request.user.id
         )
         favorite = FavoriteArticle.objects.filter(
-            favorited_by=favorited_by, 
+            favorited_by=favorited_by,
             article=article
         )
         if not favorite:
-            serializer = self.serializer_class(data={'is_favorite':True})
+            serializer = self.serializer_class(data={'is_favorite': True})
             serializer.is_valid(raise_exception=True)
             serializer.save(
                 article=article,
@@ -390,7 +391,6 @@ class FavoriteArticleCreateList(generics.ListCreateAPIView):
             {"message": "You already favorited this article"},
             status=status.HTTP_200_OK
         )
-
 
     def get(self, request, **kwargs):
         """
@@ -407,10 +407,11 @@ class FavoriteArticleCreateList(generics.ListCreateAPIView):
         )
         serialized_favorites = self.serializer_class(favorites, many=True)
 
-        favorited_by = [favorite.get('favorited_by') for favorite in serialized_favorites.data]
+        favorited_by = [favorite.get('favorited_by')
+                        for favorite in serialized_favorites.data]
 
         return Response(
-            {'favorited_by' : favorited_by},
+            {'favorited_by': favorited_by},
             status=status.HTTP_200_OK
         )
 
@@ -420,20 +421,23 @@ class FavoriteArticleDestroy(generics.DestroyAPIView):
     queryset = FavoriteArticle.objects.all()
     serializer_class = serializers.FavoriteArticleSerializer
     lookup_field = 'slug'
+
     def delete(self, request, **kwargs):
         """
         Unfavorite an article
         """
-        queryset = FavoriteArticle.objects.filter(favorited_by=Profile.objects.filter(user=request.user).first())
-        queryset = queryset.filter(article_id=(Articles.objects.filter(slug=kwargs.get('slug')).first()).id).first()
+        queryset = FavoriteArticle.objects.filter(
+            favorited_by=Profile.objects.filter(user=request.user).first())
+        queryset = queryset.filter(article_id=(
+            Articles.objects.filter(slug=kwargs.get('slug')).first()).id).first()
         serializer = serializers.FavoriteArticleSerializer(queryset)
 
         if not queryset:
             return Response({
-            'message': 'You have never favorited the article'
-        },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+                'message': 'You have never favorited the article'
+            },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         queryset.delete()
         return Response({
             'message': 'You have unfavorited the article'

@@ -2,6 +2,7 @@ from django_filters import rest_framework as filters
 from django_filters import FilterSet
 from authors.apps.articles.models import Articles
 
+
 class ArticleFilter(FilterSet):
     """
     class handling the filtering of articles:
@@ -15,6 +16,9 @@ class ArticleFilter(FilterSet):
     author = filters.CharFilter('author__user__username',
                                 lookup_expr='icontains'
                                 )
+    email = filters.CharFilter('author__user__email',
+                               lookup_expr='icontains'
+                               )
     title = filters.CharFilter(lookup_expr='icontains')
     tagsList = filters.CharFilter('tagsList', method='filter_tags')
 
