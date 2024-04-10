@@ -22,7 +22,7 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get('DEBUG', 'True'),
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.herokuapp.com', '.3.us']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.herokuapp.com', '.3.us-1.fl0.io']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
