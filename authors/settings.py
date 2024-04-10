@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-import django_heroku
+# import django_heroku
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -22,7 +22,7 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get('DEBUG', 'True'),
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.herokuapp.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.herokuapp.com', '.3.us']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -121,7 +121,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'authors.apps.core.exceptions.core_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'error',
 
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEfULT_AUTHENTICATION_CLASSES': (
         'authors.apps.authentication.backends.JWTAuthentication',
     ),
 
@@ -143,7 +143,7 @@ SWAGGER_SETTINGS = {
     },
 }
 
-django_heroku.settings(locals())
+# django_heroku.settings(locals())
 
 EMAIL_USE_TLS = True
 EMAIL_HOST = os.environ.get('EMAIL_HOST', )
@@ -160,4 +160,4 @@ WORD_PER_MINUTE = 265
 # Each word is standardized to be five characters long.
 WORD_LENGTH = 5
 
-django_heroku.settings(locals())
+# django_heroku.settings(locals())
