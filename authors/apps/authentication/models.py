@@ -1,5 +1,5 @@
 import os
-import jwt
+from jwt import JWT
 from authors.settings import EMAIL_HOST_USER, SECRET_KEY
 from django.db.models.signals import post_save
 from datetime import datetime, timedelta
@@ -13,6 +13,7 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 
+jwt = JWT()
 
 class UserManager(BaseUserManager):
     """
@@ -124,7 +125,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             'id': self.pk,
             'email': self.email,
             'exp': int(exp_time.strftime('%s'))
-        }, SECRET_KEY, algorithm='HS256')
+        }, SECRET_KEY, alg='HS256')
         return token.decode('utf-8')
 
     @staticmethod

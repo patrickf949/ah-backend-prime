@@ -80,6 +80,7 @@ celerybeat-schedule
 
 # dotenv
 .env
+env.sh
 
 # virtualenv
 venv/
@@ -98,3 +99,4 @@ db.sqlite3
 #vscode
 .vscode/
 .idea/
+

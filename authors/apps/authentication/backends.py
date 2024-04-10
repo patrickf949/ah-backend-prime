@@ -1,9 +1,9 @@
-import jwt
+from jwt import JWT
 from django.conf import settings
 from rest_framework import authentication, exceptions
 from authors.apps.authentication.models import User
 
-
+jwt = JWT()
 class JWTAuthentication(authentication.BaseAuthentication):
 
     """

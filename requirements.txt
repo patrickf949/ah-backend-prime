@@ -1,7 +1,8 @@
 asn1crypto==0.24.0
 astroid==2.2.5
 autopep8==1.4.3
-coreapi
+coreapi==2.3.3
+coreschema==0.0.4
 coverage==4.5.3
 coveralls==1.7.0
 cryptography==2.6.1
