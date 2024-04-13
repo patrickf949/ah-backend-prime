@@ -131,7 +131,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             'email': self.email,
             'exp': int(exp_time.strftime('%s'))
         }, key=SECRET_KEY, algorithm='HS256')
-        return token.decode('utf-8')
+        print(f"punched inn {token}")
+        return token.encode('utf-8')
 
     @staticmethod
     def call_back(link):

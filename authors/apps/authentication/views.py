@@ -5,7 +5,7 @@ import os
 
 from django.http import HttpResponseRedirect
 
-from authors.settings import SECRET_KEY
+from authors.settings import EMAIL_HOST, EMAIL_HOST_USER, SECRET_KEY
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import get_object_or_404
@@ -13,7 +13,7 @@ from django.core.mail import send_mail
 from rest_framework import status, serializers
 from rest_framework.generics import RetrieveUpdateAPIView, UpdateAPIView, GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.core.mail import send_mail
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import User
@@ -67,6 +67,21 @@ class ActivateUserAPIView(GenericAPIView):
             # redirect page
         return HttpResponseRedirect(domain)
 
+class TestEmailWorks(GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            email_info = dict(email=EMAIL_HOST_USER,host=EMAIL_HOST,)
+            print(email_info)
+            send_mail(subject="test sht out",
+                    message="you know what it is",
+                    recipient_list=["patrickf1290@gmail.com", ],
+                    fail_silently=False,
+                    from_email=EMAIL_HOST_USER
+                    )
+                # redirect page
+            return Response(dict(man=True), status=status.HTTP_201_CREATED)
+        except Exception as error:
+            print(str(error))
 
 class LoginAPIView(GenericAPIView):
     permission_classes = (AllowAny,)

@@ -6,7 +6,8 @@ from authors.apps.authentication.views import (
     UserRetrieveUpdateAPIView,
     PassordResetRequestView,
     ActivateUserAPIView,
-    PasswordResetView
+    PasswordResetView,
+    TestEmailWorks
 )
 
 urlpatterns = [
@@ -18,4 +19,6 @@ urlpatterns = [
          PassordResetRequestView.as_view(), name='password-email'),
     path('users/password/<str:token>/reset/',
          PasswordResetView.as_view(), name='password-reset'),
+    path('users/email-works/',
+         TestEmailWorks.as_view(), name='emailtest'),
 ]
