@@ -1,5 +1,5 @@
 import os
-from jwt import JWT
+import jwt
 from authors.settings import EMAIL_HOST_USER, SECRET_KEY
 from django.db.models.signals import post_save
 from datetime import datetime, timedelta
@@ -13,7 +13,6 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 
-jwt = JWT()
 
 class UserManager(BaseUserManager):
     """
@@ -121,11 +120,17 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         """
         exp_time = datetime.now() + timedelta(hours=3)
-        token = jwt.encode({
+        data = dict(payload={
             'id': self.pk,
             'email': self.email,
             'exp': int(exp_time.strftime('%s'))
-        }, SECRET_KEY, alg='HS256')
+        }, key=SECRET_KEY, algorithm='HS256')
+        print(f"punched inn {data}")
+        token:str = jwt.encode({
+            'id': self.pk,
+            'email': self.email,
+            'exp': int(exp_time.strftime('%s'))
+        }, key=SECRET_KEY, algorithm='HS256')
         return token.decode('utf-8')
 
     @staticmethod

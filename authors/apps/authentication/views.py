@@ -1,5 +1,5 @@
-from jwt import JWT
-from jwt.exceptions import JWTException
+import jwt
+
 
 import os
 
@@ -33,7 +33,6 @@ from authors.apps.authentication.serializers import (
 )
 from .validation import validate_registration
 
-jwt = JWT()
 class RegistrationAPIView(GenericAPIView):
     """
     Allow any user (authenticated or not) to hit this endpoint.
@@ -136,7 +135,7 @@ class PasswordResetView(GenericAPIView):
         token = kwargs.pop('token')
         try:
             user = jwt.decode(token, SECRET_KEY)
-        except JWTException:
+        except jwt.ExpiredSignatureError:
             return Response({'error': 'token expired'})
         user_detail = User.objects.get(pk=user['id'])
         data = request.data.get('user', {})
