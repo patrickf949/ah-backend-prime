@@ -38,6 +38,7 @@ RUN apt-get update \
 COPY . /app
 
 # Install Python dependencies
+# RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Expose the port that Django runs on
