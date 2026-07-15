@@ -1,0 +1,41 @@
+# Render Blueprint for the Authors' Haven Django API.
+# Database lives on Neon (free, non-expiring) — set DATABASE_URL below to the
+# Neon connection string. See DEPLOYMENT.md for the full walkthrough.
+services:
+  - type: web
+    name: ah-backend-prime
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn authors.wsgi:application"
+    healthCheckPath: /api/v1/articles/latest/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      # Django auto-generates a strong SECRET_KEY on first deploy.
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      # Neon Postgres connection string — paste it in the Render dashboard.
+      - key: DATABASE_URL
+        sync: false
+      # Comma-separated frontend origin(s), e.g. https://your-app.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      # OAuth client id shared with the frontend Google sign-in.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      # Optional: SMTP for activation / password-reset emails.
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      # Optional: public URL of the deployed frontend (redirect after activation).
+      - key: FRONTEND_URL
+        sync: false
+      - key: FRONT_END_URL
+        sync: false

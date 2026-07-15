@@ -11,18 +11,30 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-import django_heroku
+
+import dj_database_url
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 SECRET_KEY = os.environ.get(
     'SECRET_KEY',
-    '7pgozr2jn7zs_o%i8id6=rddie!*0f0qy3$oy$(8231i^4*@u3'),
+    '7pgozr2jn7zs_o%i8id6=rddie!*0f0qy3$oy$(8231i^4*@u3'
+)
 
-DEBUG = os.environ.get('DEBUG', 'True'),
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes', 'on')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.herokuapp.com']
+ALLOWED_HOSTS = [
+    host.strip() for host in os.environ.get(
+        'ALLOWED_HOSTS',
+        'localhost,127.0.0.1,.herokuapp.com,.onrender.com'
+    ).split(',') if host.strip()
+]
+
+# Render provides the external hostname at runtime; trust it automatically.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -31,13 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'corsheaders',
-    'django_extensions',
     'rest_framework',
-    'rest_framework_swagger',
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
+    'authors.apps.social_auth',
     'drf_yasg',
     'authors.apps.articles',
     'django_filters',
@@ -46,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,14 +90,22 @@ WSGI_APPLICATION = 'authors.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'authors_prime'),
         'USER': os.environ.get('DB_USER', 'postgres'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('PORT', '5432'),
+        'PORT': os.environ.get('DB_PORT', os.environ.get('PORT', '5432')),
     }
 }
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -107,13 +128,25 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-CORS_ORIGIN_ALLOW_ALL = True
+# In production set CORS_ALLOWED_ORIGINS to a comma-separated list of the
+# frontend origins (e.g. https://your-app.vercel.app). When it is unset we
+# fall back to allowing all origins, which keeps local development friction
+# free but should not be relied on once deployed.
+_cors_origins = [
+    origin.strip() for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS', ''
+    ).split(',') if origin.strip()
+]
+if _cors_origins:
+    CORS_ALLOWED_ORIGINS = _cors_origins
+    CSRF_TRUSTED_ORIGINS = _cors_origins
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'authentication.User'
 
@@ -143,8 +176,6 @@ SWAGGER_SETTINGS = {
     },
 }
 
-django_heroku.settings(locals())
-
 EMAIL_USE_TLS = True
 EMAIL_HOST = os.environ.get('EMAIL_HOST', )
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', )
@@ -152,7 +183,16 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', )
 EMAIL_PORT = 587
 TWITTER_CONSUMER_API_KEY = os.environ.get('TWITTER_CONSUMER_API_KEY')
 TWITTER_CONSUMER_API_SECRET = os.environ.get('TWITTER_CONSUMER_API_SECRET')
-SOCIAL_PASSWORD = os.environ.get('SOCIAL_PASSWORD')
+# OAuth client the frontend uses for Google sign-in; ID tokens presented to
+# the API must carry this audience. Client IDs are public, so the frontend's
+# ID is a safe default.
+GOOGLE_CLIENT_ID = os.environ.get(
+    'GOOGLE_CLIENT_ID',
+    '140929687593-ul95834mce97cv333q6ci5i78rnmhu87.apps.googleusercontent.com'
+)
+
+# Public URL of the frontend, used to build canonical/SEO URLs
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 # Article reading time configurations
 # Number of words proccesed by an average adult in a minute
@@ -160,4 +200,4 @@ WORD_PER_MINUTE = 265
 # Each word is standardized to be five characters long.
 WORD_LENGTH = 5
 
-django_heroku.settings(locals())
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
