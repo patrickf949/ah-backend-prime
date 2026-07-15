@@ -1,7 +1,8 @@
 import json
+from django.db.models import Count, F, Q
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import Articles, Tag, LikeDislike, Comment, FavoriteArticle
+from .models import Articles, Tag, Reaction, Comment, FavoriteArticle
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly,
                                         AllowAny
@@ -26,7 +27,7 @@ class ArticleListCreate(generics.ListCreateAPIView):
     queryset = Articles.objects.all()
     serializer_class = serializers.ArticleSerializer
     pagination_class = ArticlePagination
-    filter_class = ArticleFilter
+    filterset_class = ArticleFilter
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     search_fields = ('title', 'body', 'description',
                      'author__user__username', 'author__user__email')
@@ -163,32 +164,185 @@ class TagsView(generics.ListAPIView):
     queryset = Tag.objects.all()
 
 
-class VotesView(generics.CreateAPIView):
-    '''View that handles the likes and dislikes routes'''
-    serializer_class = serializers.ArticleSerializer
-    model = None
-    vote_type = None
+class ReactionMixin:
+    '''Shared toggle logic for emoji reactions on any content object'''
+
+    def toggle_reaction(self, request, obj, reaction_type):
+        serializer = serializers.ReactionSerializer(
+            data={'reaction': reaction_type})
+        serializer.is_valid(raise_exception=True)
+        reaction_type = serializer.validated_data['reaction']
+
+        content_type = ContentType.objects.get_for_model(obj)
+        existing = Reaction.objects.filter(
+            content_type=content_type,
+            object_id=obj.id,
+            user=request.user,
+            reaction=reaction_type
+        ).first()
+
+        if existing:
+            existing.delete()
+        else:
+            opposite = Reaction.OPPOSITES.get(reaction_type)
+            if opposite:
+                Reaction.objects.filter(
+                    content_type=content_type,
+                    object_id=obj.id,
+                    user=request.user,
+                    reaction=opposite
+                ).delete()
+            obj.reactions.create(user=request.user, reaction=reaction_type)
+
+    def reaction_details(self, request, obj):
+        '''Full reaction breakdown, including the viewer's own reactions'''
+        summary = obj.reactions.summary()
+        viewer_reactions = []
+        if request.user.is_authenticated:
+            viewer_reactions = list(
+                obj.reactions.filter(user=request.user)
+                .values_list('reaction', flat=True)
+            )
+        return {
+            'total': sum(summary.values()),
+            'breakdown': [
+                {
+                    'reaction': name,
+                    'emoji': emoji,
+                    'count': summary.get(name, 0),
+                    'viewer_reacted': name in viewer_reactions
+                }
+                for name, emoji in Reaction.REACTION_CHOICES
+            ],
+            'viewer_reactions': viewer_reactions
+        }
+
+
+class ArticleReactionView(ReactionMixin, generics.GenericAPIView):
+    '''Toggle an emoji reaction on an article.
+
+    POST body: {"reaction": "<like|dislike|love|clap|laugh|wow|sad|fire|insightful>"}
+    The legacy /like/ and /dislike/ routes set reaction_type directly.
+    '''
+    serializer_class = serializers.ReactionSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    reaction_type = None
 
     def post(self, request, slug):
-        '''Post method handles liking and disliking an article'''
-        obj = self.model.objects.get(slug=slug)
-        try:
-            likedislike = LikeDislike.objects.get(
-                content_type=ContentType.objects.get_for_model(obj),
-                object_id=obj.id, user=request.user
-            )
-            if likedislike.vote is not self.vote_type:
-                likedislike.vote = self.vote_type
-                likedislike.save(update_fields=['vote'])
-            else:
-                likedislike.delete()
-
-        except LikeDislike.DoesNotExist:
-            obj.votes.create(user=request.user, vote=self.vote_type)
-
-        serializer = serializers.ArticleSerializer(obj)
-
+        article = get_object_or_404(Articles, slug=slug)
+        reaction_type = self.reaction_type or request.data.get('reaction')
+        self.toggle_reaction(request, article, reaction_type)
+        serializer = serializers.ArticleSerializer(article)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request, slug):
+        '''Reaction breakdown for an article'''
+        article = get_object_or_404(Articles, slug=slug)
+        return Response(
+            self.reaction_details(request, article),
+            status=status.HTTP_200_OK
+        )
+
+
+class CommentReactionView(ReactionMixin, generics.GenericAPIView):
+    '''Toggle an emoji reaction on a comment'''
+    serializer_class = serializers.ReactionSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def post(self, request, id):
+        comment = get_object_or_404(Comment, id=id)
+        self.toggle_reaction(request, comment, request.data.get('reaction'))
+        serializer = serializers.CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request, id):
+        '''Reaction breakdown for a comment'''
+        comment = get_object_or_404(Comment, id=id)
+        return Response(
+            self.reaction_details(request, comment),
+            status=status.HTTP_200_OK
+        )
+
+
+class ArticleDiscoveryView(generics.ListAPIView):
+    '''Base view for article discovery lists (latest, trending, popular).
+
+    Supports ?limit= (default 5, max 20) and returns a plain list of
+    articles — ideal for homepage snippet sections.
+    '''
+    permission_classes = (AllowAny,)
+    serializer_class = serializers.ArticleSerializer
+    pagination_class = None
+
+    DEFAULT_LIMIT = 5
+    MAX_LIMIT = 20
+
+    def get_limit(self):
+        try:
+            limit = int(self.request.query_params.get(
+                'limit', self.DEFAULT_LIMIT))
+        except (TypeError, ValueError):
+            limit = self.DEFAULT_LIMIT
+        return max(1, min(limit, self.MAX_LIMIT))
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()[:self.get_limit()]
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'articles': serializer.data},
+                        status=status.HTTP_200_OK)
+
+
+class LatestArticles(ArticleDiscoveryView):
+    '''Most recently published articles'''
+
+    def get_queryset(self):
+        return Articles.objects.order_by('-createdAt')
+
+
+class TrendingArticles(ArticleDiscoveryView):
+    '''Articles with the most activity (comments + reactions)'''
+
+    def get_queryset(self):
+        return Articles.objects.annotate(
+            num_comments=Count('comment', distinct=True),
+            num_reactions=Count('reactions', distinct=True),
+        ).annotate(
+            activity_score=F('num_comments') + F('num_reactions')
+        ).order_by('-activity_score', '-createdAt')
+
+
+class PopularArticles(ArticleDiscoveryView):
+    '''Articles with the most positive reactions and favorites'''
+
+    def get_queryset(self):
+        return Articles.objects.annotate(
+            num_positive_reactions=Count(
+                'reactions',
+                filter=~Q(reactions__reaction=Reaction.DISLIKE),
+                distinct=True
+            ),
+            num_favorites=Count('favoritearticle', distinct=True),
+        ).annotate(
+            popularity_score=F('num_positive_reactions') + F('num_favorites')
+        ).order_by('-popularity_score', '-createdAt')
+
+
+class ArticleSeoView(generics.GenericAPIView):
+    '''SEO payload for one article: meta tags, Open Graph, Twitter card
+    and schema.org JSON-LD structured data, ready to inject into the
+    document head when rendering the article page.
+    '''
+    permission_classes = (AllowAny,)
+    serializer_class = serializers.ArticleSerializer
+
+    def get(self, request, slug):
+        from .seo import build_seo_meta, build_structured_data
+        article = get_object_or_404(Articles, slug=slug)
+        return Response({
+            'slug': article.slug,
+            'meta': build_seo_meta(article),
+            'structured_data': build_structured_data(article),
+        }, status=status.HTTP_200_OK)
 
 
 class CommentCreateList(generics.ListCreateAPIView):

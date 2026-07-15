@@ -36,7 +36,7 @@ class TestNotifications(NotificationBaseTest):
             format='json',
             HTTP_AUTHORIZATION=token2
         )
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_single_unread_notification(self):
         """
@@ -70,8 +70,8 @@ class TestNotifications(NotificationBaseTest):
             format='json',
             HTTP_AUTHORIZATION=token2
         )
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, response.data)
 
     def test_get_unread_notifications(self):
         """
@@ -105,8 +105,8 @@ class TestNotifications(NotificationBaseTest):
             format='json',
             HTTP_AUTHORIZATION=token2
         )
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, response.data)
 
     def test_single_notifications_not_found(self):
         """
@@ -140,8 +140,8 @@ class TestNotifications(NotificationBaseTest):
             HTTP_AUTHORIZATION=token2
         )
 
-        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEquals(response.data['error'], 'notifications not available')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data['error'], 'notifications not available')
 
     def test_in_app_and_email_notification_disabled(self):
         token = self.create_user(VALID_USER_DATA)
@@ -149,5 +149,5 @@ class TestNotifications(NotificationBaseTest):
                                    HTTP_AUTHORIZATION=token,
                                    format='json'
                                    )
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data['error'], "disabled notifications app")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['error'], "disabled notifications app")

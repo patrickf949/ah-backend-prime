@@ -13,14 +13,14 @@ class ArticleFilter(FilterSet):
         - tagList
     returns article depending on the supplied param
     """
-    author = filters.CharFilter('author__user__username',
+    author = filters.CharFilter(field_name='author__user__username',
                                 lookup_expr='icontains'
                                 )
-    email = filters.CharFilter('author__user__email',
+    email = filters.CharFilter(field_name='author__user__email',
                                lookup_expr='icontains'
                                )
     title = filters.CharFilter(lookup_expr='icontains')
-    tagsList = filters.CharFilter('tagsList', method='filter_tags')
+    tagsList = filters.CharFilter(field_name='tagsList', method='filter_tags')
 
     class Meta:
         model = Articles

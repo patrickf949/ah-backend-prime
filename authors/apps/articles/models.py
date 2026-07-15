@@ -10,36 +10,81 @@ from django.contrib.contenttypes.fields import GenericRelation
 from authors.settings import WORD_LENGTH, WORD_PER_MINUTE
 
 
-class LikeDislikeManager(models.Manager):
-    """Model responsible for returning the likes/dislikes"""
+class ReactionManager(models.Manager):
+    """Manager exposing common reaction querysets and aggregates"""
 
     def likes(self):
-        """We take the queryset with records greater than 0"""
-        return self.get_queryset().filter(vote__gt=0)
+        return self.get_queryset().filter(reaction=Reaction.LIKE)
 
     def dislikes(self):
-        """We take the queryset with records less than 0"""
-        return self.get_queryset().filter(vote__lt=0)
+        return self.get_queryset().filter(reaction=Reaction.DISLIKE)
+
+    def summary(self):
+        """Return a {reaction: count} mapping for reactions present"""
+        return {
+            row['reaction']: row['total']
+            for row in self.get_queryset()
+            .values('reaction')
+            .annotate(total=models.Count('id'))
+            .order_by('-total')
+        }
 
 
-class LikeDislike(models.Model):
-    """Model to efficiently handle likes-dislikes with other models"""
-    LIKE = 1
-    DISLIKE = -1
+class Reaction(models.Model):
+    """A user's emoji reaction to any content object (article, comment)"""
+    LIKE = 'like'
+    DISLIKE = 'dislike'
+    LOVE = 'love'
+    CLAP = 'clap'
+    LAUGH = 'laugh'
+    WOW = 'wow'
+    SAD = 'sad'
+    FIRE = 'fire'
+    INSIGHTFUL = 'insightful'
 
-    VOTES = (
-        (DISLIKE, 'Dislike'),
-        (LIKE, 'Like')
+    REACTION_CHOICES = (
+        (LIKE, '👍'),
+        (DISLIKE, '👎'),
+        (LOVE, '❤️'),
+        (CLAP, '👏'),
+        (LAUGH, '😂'),
+        (WOW, '😮'),
+        (SAD, '😢'),
+        (FIRE, '🔥'),
+        (INSIGHTFUL, '💡'),
     )
 
-    vote = models.SmallIntegerField(choices=VOTES)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # Reactions that replace each other when a user switches between them
+    OPPOSITES = {LIKE: DISLIKE, DISLIKE: LIKE}
+
+    reaction = models.CharField(max_length=20, choices=REACTION_CHOICES)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reactions')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey()
 
-    objects = LikeDislikeManager()
+    objects = ReactionManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'content_type', 'object_id', 'reaction'],
+                name='unique_user_object_reaction'
+            )
+        ]
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+        ]
+
+    @classmethod
+    def emoji_for(cls, reaction):
+        return dict(cls.REACTION_CHOICES).get(reaction, '')
+
+    def __str__(self):
+        return '{} {}'.format(self.reaction, self.emoji_for(self.reaction))
 
 
 class Articles(models.Model):
@@ -62,7 +107,7 @@ class Articles(models.Model):
         on_delete=models.CASCADE,
         related_name='author'
     )
-    votes = GenericRelation(LikeDislike, related_query_name='articles')
+    reactions = GenericRelation(Reaction, related_query_name='articles')
 
     class Meta:
         get_latest_by = ['id']
@@ -150,6 +195,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
     )
     commentHistory = models.TextField(default="")
+    reactions = GenericRelation(Reaction, related_query_name='comments')
 
     class Meta:
         get_latest_by = ['createdAt']

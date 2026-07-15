@@ -265,8 +265,8 @@ class ArticleCreateTest(ArticlesBaseTest):
             data={"ratings": 3.0},
             HTTP_AUTHORIZATION=token
         )
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(response.data, response.json())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, response.json())
 
     def test_user_not_rating_your_own_articles(self):
         token = self.create_user(VALID_USER_DATA)
@@ -283,8 +283,8 @@ class ArticleCreateTest(ArticlesBaseTest):
             data={"ratings": 3.0},
             HTTP_AUTHORIZATION=token
         )
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(response.data['message'],
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'],
                           "thanks for rating this article")
 
     def test_rating_out_of_range(self):
@@ -302,8 +302,8 @@ class ArticleCreateTest(ArticlesBaseTest):
             data={"ratings": 7.0},
             HTTP_AUTHORIZATION=token
         )
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
             response.data['errors']['ratings'][0],
             'Ratings should be numbers between 0-5')
 

@@ -3,23 +3,58 @@ from django.urls import path
 from authors.apps.articles.views import (
     ArticleListCreate,
     ArticleRetrieveUpdateDestroy,
+    ArticleReactionView,
+    ArticleSeoView,
+    CommentReactionView,
+    LatestArticles,
+    PopularArticles,
     RateArticleView,
     TagsView,
-    VotesView,
+    TrendingArticles,
     CommentCreateList,
     CommentRetrieveUpdateDestroy,
     ReportArticleView,
     FavoriteArticleCreateList,
     FavoriteArticleDestroy
 )
-from .models import LikeDislike
-from .models import Articles
+from .models import Reaction
 
 urlpatterns = [
     path(
         'articles/',
         ArticleListCreate.as_view(),
         name='articles'
+    ),
+    # Discovery endpoints must precede the slug catch-all route
+    path(
+        'articles/latest/',
+        LatestArticles.as_view(),
+        name='latest-articles'
+    ),
+    path(
+        'articles/trending/',
+        TrendingArticles.as_view(),
+        name='trending-articles'
+    ),
+    path(
+        'articles/popular/',
+        PopularArticles.as_view(),
+        name='popular-articles'
+    ),
+    path(
+        'articles/comments/<int:id>/',
+        CommentRetrieveUpdateDestroy.as_view(),
+        name='crud-comment'
+    ),
+    path(
+        'articles/comments/<int:id>/react/',
+        CommentReactionView.as_view(),
+        name='comment-react'
+    ),
+    path(
+        'articles/comments/<int:id>/reactions/',
+        CommentReactionView.as_view(),
+        name='comment-reactions'
     ),
     path(
         'articles/<str:slug>/',
@@ -32,35 +67,40 @@ urlpatterns = [
         name='rate-article'
     ),
     path(
+        'articles/<str:slug>/seo/',
+        ArticleSeoView.as_view(),
+        name='article-seo'
+    ),
+    path(
         'tags/',
         TagsView.as_view(),
         name='tags'
     ),
     path(
+        'articles/<str:slug>/react/',
+        ArticleReactionView.as_view(),
+        name='article-react'
+    ),
+    path(
+        'articles/<str:slug>/reactions/',
+        ArticleReactionView.as_view(),
+        name='article-reactions'
+    ),
+    # Legacy shortcuts kept for backward compatibility
+    path(
         'articles/<str:slug>/like/',
-        VotesView.as_view(
-            vote_type=LikeDislike.LIKE,
-            model=Articles
-        ),
+        ArticleReactionView.as_view(reaction_type=Reaction.LIKE),
         name='article_like'
     ),
     path(
         'articles/<str:slug>/dislike/',
-        VotesView.as_view(
-            vote_type=LikeDislike.DISLIKE,
-            model=Articles
-        ),
+        ArticleReactionView.as_view(reaction_type=Reaction.DISLIKE),
         name='article_dislike'
     ),
     path(
         'articles/<str:slug>/comments/<int:id>/',
         CommentCreateList.as_view(),
         name='comments'
-    ),
-    path(
-        'articles/comments/<int:id>/',
-        CommentRetrieveUpdateDestroy.as_view(),
-        name='crud-comment'
     ),
     path(
         'articles/<slug>/report/',
@@ -77,5 +117,4 @@ urlpatterns = [
         FavoriteArticleDestroy.as_view(),
         name='unfavorite-article'
     )
-
 ]
