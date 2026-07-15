@@ -20,6 +20,12 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+from authors.apps.articles.seo import (
+    LatestArticlesFeed,
+    robots_view,
+    sitemap_view,
+)
+
 schema_view = get_schema_view(
     openapi.Info(
       title="Authors' haven",
@@ -38,5 +44,8 @@ urlpatterns = [
     path('api/v1/social/', include('authors.apps.social_auth.urls',)),
     path('api/v1/', include('authors.apps.profiles.urls')),
     path('api/v1/', include('authors.apps.articles.urls')),
-    path('api/v1/', include('authors.apps.notification.urls'))
+    path('api/v1/', include('authors.apps.notification.urls')),
+    path('sitemap.xml', sitemap_view, name='sitemap'),
+    path('robots.txt', robots_view, name='robots'),
+    path('feed/rss/', LatestArticlesFeed(), name='rss-feed'),
 ]
