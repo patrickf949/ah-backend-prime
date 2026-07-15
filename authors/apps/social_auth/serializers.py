@@ -1,25 +1,34 @@
 from rest_framework import serializers
 from authors.apps.social_auth import twitter_auth, google_auth, facebook_auth
-from authors.apps.social_auth.register import register_user
+from authors.apps.social_auth.models import SocialAccount
+from authors.apps.social_auth.register import register_social_user
 
 class AuthSerializer(serializers.Serializer):
-    '''Class to register a user if decoded token information is valid'''
+    '''Base class: turns decoded provider data into a logged-in user'''
+
+    provider = None
 
     def validate_token(self, key, user_data):
-        '''Function that registers a user if decoded token information is valid'''
+        '''Registers or logs in a user if decoded token information is valid'''
         try:
-            user_data[key]
-        except:
+            provider_user_id = user_data[key]
+        except (TypeError, KeyError):
             raise serializers.ValidationError(
                 'This token is invalid'
             )
-        if 'email' not in user_data:
+        if not user_data.get('email'):
             return "Email address not provided!"
-        return register_user(email=user_data['email'], username=user_data['name'])
+        return register_social_user(
+            provider=self.provider,
+            provider_user_id=provider_user_id,
+            email=user_data['email'],
+            username=user_data.get('name') or user_data.get('screen_name')
+        )
 
 
 class TwitterAuthSerializer(AuthSerializer):
     auth_token = serializers.CharField()
+    provider = SocialAccount.TWITTER
 
     def validate_auth_token(self, auth_token):
         '''Returns user information from decoded Twitter token'''
@@ -29,6 +38,7 @@ class TwitterAuthSerializer(AuthSerializer):
 
 class FacebookAuthSerializer(AuthSerializer):
     auth_token = serializers.CharField()
+    provider = SocialAccount.FACEBOOK
 
     def validate_auth_token(self, auth_token):
         '''Returns user information from decoded Facebook token'''
@@ -38,6 +48,7 @@ class FacebookAuthSerializer(AuthSerializer):
 
 class GoogleAuthSerializer(AuthSerializer):
     auth_token = serializers.CharField()
+    provider = SocialAccount.GOOGLE
 
     def validate_auth_token(self, auth_token):
         '''Returns user information from decoded Google token'''

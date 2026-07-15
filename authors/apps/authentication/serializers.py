@@ -9,6 +9,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
     """Serializers registration requests and creates a new user."""
 
     token = serializers.CharField(max_length=255, read_only=True)
+    # password lives in the user_passwords table, not on the User model,
+    # so it must be declared explicitly to stay a writable input field
+    password = serializers.CharField(
+        max_length=128,
+        min_length=8,
+        write_only=True
+    )
 
     class Meta:
         model = User
@@ -50,6 +57,12 @@ class LoginSerializer(serializers.Serializer):
 
         user = authenticate(username=email, password=password)
         if user is None:
+            existing = User.objects.filter(email=email).first()
+            if existing is not None and not existing.has_usable_password():
+                raise serializers.ValidationError(
+                    'This account uses social sign-in. '
+                    'Please continue with Google, Facebook or Twitter.'
+                )
             raise serializers.ValidationError(
                 'A user with this email and password was not found.'
             )

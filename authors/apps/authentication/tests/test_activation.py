@@ -24,11 +24,11 @@ class ActivateUserTest(BaseTest):
             data=VALID_LOGIN_DATA,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code , 
             status.HTTP_200_OK
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data['email'],
             'anyatibrian@glo.com'
         )
@@ -49,11 +49,11 @@ class ActivateUserTest(BaseTest):
             data=VALID_LOGIN_DATA,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code , 
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data,
             ERROR_LOGIN
         )

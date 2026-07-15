@@ -48,8 +48,12 @@ class JWTAuthentication(authentication.BaseAuthentication):
         if authentication is not successful, throw an error
         """
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY)
-        except BaseException:
+            payload = jwt.decode(
+                token,
+                settings.SECRET_KEY,
+                algorithms=['HS256']
+            )
+        except jwt.PyJWTError:
             raise exceptions.AuthenticationFailed(
                 'Invalid authentication. Token could not be decoded')
 

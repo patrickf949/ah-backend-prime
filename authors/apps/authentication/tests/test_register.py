@@ -30,9 +30,9 @@ class UserRegisterTest(BaseTest):
             data=VALID_USER_DATA,
             format='json'
         )
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(response.data["username"], "anyatijude")
-        self.assertEquals(response.data["email"], "anyatibrian@glo.com")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["username"], "anyatijude")
+        self.assertEqual(response.data["email"], "anyatibrian@glo.com")
 
     def test_empty_username(self):
         """
@@ -43,11 +43,11 @@ class UserRegisterTest(BaseTest):
             data=EMPTY_USERNAME,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Username should not be left empty"
         )
@@ -62,12 +62,12 @@ class UserRegisterTest(BaseTest):
             data=INVALID_USERNAME,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
 
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Username should not be less than 4 characters"
         )
@@ -82,12 +82,12 @@ class UserRegisterTest(BaseTest):
             data=EMPTY_EMAIL,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
 
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Email should not be left empty"
         )
@@ -103,11 +103,11 @@ class UserRegisterTest(BaseTest):
             data=EMPTY_PASSWORD,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Please provide the password"
         )
@@ -123,11 +123,11 @@ class UserRegisterTest(BaseTest):
             data=EMPTY_SPACE_USERNAME,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Username should not contain any spaces"
         )
@@ -143,11 +143,11 @@ class UserRegisterTest(BaseTest):
             data=EMPTY_SPACE_EMAIL,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Email should not contain any spaces"
         )
@@ -163,10 +163,10 @@ class UserRegisterTest(BaseTest):
             data=PASSWORD_WITH_SPACE,
             format='json'
         )
-        self.assertEquals(response.status_code,
+        self.assertEqual(response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Password should not contain any spaces"
         )
@@ -181,11 +181,11 @@ class UserRegisterTest(BaseTest):
             data=INVALID_PASSWORD,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data["errors"][0],
             "Password should have atleast one lowercase character,"+
             "one Uppercase character, one Integer and one Special character"
@@ -201,11 +201,11 @@ class UserRegisterTest(BaseTest):
             data=SHORT_PASSWORD,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data['errors'][0],
             "Password length should not be less than 8"+
             " characters or greater than 20 characters"
@@ -220,11 +220,11 @@ class UserRegisterTest(BaseTest):
             data=INVALID_EMAIL,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data['errors'][0],
             "Invalid email address"
         )

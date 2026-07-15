@@ -27,11 +27,11 @@ class LoginUserTest(BaseTest):
         )
 
         
-        self.assertEquals(
+        self.assertEqual(
             response.status_code , 
             status.HTTP_200_OK
         )
-        self.assertEquals(response.data['email'],
+        self.assertEqual(response.data['email'],
         'anyatibrian@glo.com')
     
     def test_invalide_user_login(self):
@@ -44,11 +44,11 @@ class LoginUserTest(BaseTest):
             data=VALID_LOGIN_DATA,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data['errors']['error'][0],
             "A user with this email and password was not found."
         )
@@ -63,11 +63,11 @@ class LoginUserTest(BaseTest):
             data=EMPTY_LOGIN_EMAIL,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code, 
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data['errors']['email'][0], 
             "This field may not be blank."
         )
@@ -81,11 +81,11 @@ class LoginUserTest(BaseTest):
             data=EMPTY_LOGIN_PASSWORD,
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             response.status_code, 
             status.HTTP_400_BAD_REQUEST
         )
-        self.assertEquals(
+        self.assertEqual(
             response.data['errors']['password'][0], 
             "This field may not be blank."
         )
