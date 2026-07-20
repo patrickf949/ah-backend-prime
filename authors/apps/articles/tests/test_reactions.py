@@ -46,12 +46,12 @@ class TestEmojiReactions(ArticlesBaseTest):
         self.assertEqual(response.data['reactions']['total'], 0)
 
     def test_multiple_emojis_by_same_user(self):
-        '''A user can hold several different emoji reactions at once'''
+        '''A user can only hold one emoji reaction at a time (adding a new one removes previous ones)'''
         token = self.create_user(VALID_USER_DATA)
         slug = self.create_article_slug(token)
         self.react(token, slug, 'clap')
         response = self.react(token, slug, 'insightful')
-        self.assertEqual(response.data['reactions']['total'], 2)
+        self.assertEqual(response.data['reactions']['total'], 1)
 
     def test_like_and_dislike_are_mutually_exclusive(self):
         '''Reacting like then dislike replaces the like'''

@@ -188,7 +188,7 @@ TWITTER_CONSUMER_API_SECRET = os.environ.get('TWITTER_CONSUMER_API_SECRET')
 # ID is a safe default.
 GOOGLE_CLIENT_ID = os.environ.get(
     'GOOGLE_CLIENT_ID',
-    '140929687593-ul95834mce97cv333q6ci5i78rnmhu87.apps.googleusercontent.com'
+    'sample-client-id.apps.googleusercontent.com'
 )
 
 # Public URL of the frontend, used to build canonical/SEO URLs
