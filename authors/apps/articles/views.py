@@ -184,14 +184,12 @@ class ReactionMixin:
         if existing:
             existing.delete()
         else:
-            opposite = Reaction.OPPOSITES.get(reaction_type)
-            if opposite:
-                Reaction.objects.filter(
-                    content_type=content_type,
-                    object_id=obj.id,
-                    user=request.user,
-                    reaction=opposite
-                ).delete()
+            # Delete any existing reaction by this user on this content object (mutually exclusive)
+            Reaction.objects.filter(
+                content_type=content_type,
+                object_id=obj.id,
+                user=request.user
+            ).delete()
             obj.reactions.create(user=request.user, reaction=reaction_type)
 
     def reaction_details(self, request, obj):
@@ -499,7 +497,7 @@ class ReportArticleView(generics.GenericAPIView):
             subject="Article reported as a violation",
             message="Your article was reported as a violation. This is the reason: {}".format(
                 data['violation']),
-            from_email=EMAIL_HOST_USER,
+            from_email=f"Author's Haven <{EMAIL_HOST_USER}>",
             recipient_list=[article.author.user.email],
             fail_silently=False
         )
@@ -598,3 +596,32 @@ class FavoriteArticleDestroy(generics.DestroyAPIView):
         },
             status=status.HTTP_200_OK
         )
+
+
+class ReactedArticles(generics.ListAPIView):
+    """
+    Returns all articles that the current user has reacted to,
+    with the reaction type and details.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        content_type = ContentType.objects.get_for_model(Articles)
+        user_reactions = Reaction.objects.filter(
+            user=request.user,
+            content_type=content_type
+        ).select_related('content_type')
+
+        data = []
+        for reaction in user_reactions:
+            article = reaction.content_object
+            if article:
+                from .serializers import ArticleSerializer
+                serializer = ArticleSerializer(article, context={'request': request})
+                data.append({
+                    'id': reaction.id,
+                    'reaction': reaction.reaction,
+                    'emoji': Reaction.emoji_for(reaction.reaction),
+                    'article': serializer.data
+                })
+        return Response(data, status=status.HTTP_200_OK)

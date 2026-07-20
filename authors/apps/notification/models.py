@@ -46,7 +46,7 @@ class Notification(models.Model):
         for i in args:
             recipient.append(i.user.email)
         send_mail(subject=subject,
-                  from_email=EMAIL_HOST_USER,
+                  from_email=f"Author's Haven <{EMAIL_HOST_USER}>",
                   message=message,
                   recipient_list=recipient,
                   fail_silently=False

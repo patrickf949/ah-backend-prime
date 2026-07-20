@@ -15,7 +15,8 @@ from authors.apps.articles.views import (
     CommentRetrieveUpdateDestroy,
     ReportArticleView,
     FavoriteArticleCreateList,
-    FavoriteArticleDestroy
+    FavoriteArticleDestroy,
+    ReactedArticles
 )
 from .models import Reaction
 
@@ -40,6 +41,11 @@ urlpatterns = [
         'articles/popular/',
         PopularArticles.as_view(),
         name='popular-articles'
+    ),
+    path(
+        'articles/reacted/',
+        ReactedArticles.as_view(),
+        name='reacted-articles'
     ),
     path(
         'articles/comments/<int:id>/',
