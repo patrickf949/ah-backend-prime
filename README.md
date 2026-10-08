@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/andela/ah-backend-prime.svg?branch=develop)](https://travis-ci.org/andela/ah-backend-prime)
-[![Coverage Status](https://coveralls.io/repos/github/andela/ah-backend-prime/badge.svg?branch=develop)](https://coveralls.io/github/andela/ah-backend-prime?branch=develop)
+[![Build Status](https://travis-ci.org/patrickf949/ah-backend-prime.svg?branch=develop)](https://travis-ci.org/patrickf949/ah-backend-prime)
+[![Coverage Status](https://coveralls.io/repos/github/patrickf949/ah-backend-prime/badge.svg?branch=develop)](https://coveralls.io/github/patrickf949/ah-backend-prime?branch=develop)
 
 ---
 
