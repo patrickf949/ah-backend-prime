@@ -16,7 +16,9 @@ from authors.apps.articles.views import (
     ReportArticleView,
     FavoriteArticleCreateList,
     FavoriteArticleDestroy,
-    ReactedArticles
+    ReactedArticles,
+    AutoSaveView,
+    UploadImageUrlView
 )
 from .models import Reaction
 
@@ -61,6 +63,16 @@ urlpatterns = [
         'articles/comments/<int:id>/reactions/',
         CommentReactionView.as_view(),
         name='comment-reactions'
+    ),
+    path(
+        'articles/autosave/',
+        AutoSaveView.as_view(),
+        name='article-autosave'
+    ),
+    path(
+        'articles/upload-image-url/',
+        UploadImageUrlView.as_view(),
+        name='upload-image-url'
     ),
     path(
         'articles/<str:slug>/',
