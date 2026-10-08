@@ -1,7 +1,12 @@
 import json
 from django.db.models import Count, F, Q
+import uuid
+import boto3
+from django.conf import settings
+from django.core.cache import cache
 from django.shortcuts import render
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from .models import Articles, Tag, Reaction, Comment, FavoriteArticle
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly,
@@ -45,6 +50,10 @@ class ArticleListCreate(generics.ListCreateAPIView):
                 article.get('title')
             )
         )
+        
+        # Clear the autosave draft from cache after successful publication
+        cache_key = f"draft:article:{request.user.id}"
+        cache.delete(cache_key)
         return Response(
             {"article": serializer.data},
             status=status.HTTP_201_CREATED
@@ -97,6 +106,10 @@ class ArticleRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # Clear the autosave draft from cache after successful update
+        cache_key = f"draft:article:{request.user.id}"
+        cache.delete(cache_key)
 
         return Response(
             serializer.data,
@@ -625,3 +638,133 @@ class ReactedArticles(generics.ListAPIView):
                     'article': serializer.data
                 })
         return Response(data, status=status.HTTP_200_OK)
+
+class AutoSaveView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        draft_data = request.data
+        cache_key = f"draft:article:{request.user.id}"
+        # Save draft for 24 hours
+        cache.set(cache_key, draft_data, timeout=60 * 60 * 24)
+        return Response({"message": "Draft saved successfully."}, status=status.HTTP_200_OK)
+
+    def get(self, request):
+        cache_key = f"draft:article:{request.user.id}"
+        draft_data = cache.get(cache_key)
+        if draft_data:
+            return Response({"draft": draft_data}, status=status.HTTP_200_OK)
+        return Response({"message": "No draft found."}, status=status.HTTP_200_OK)
+
+
+class UploadImageUrlView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        from authors.apps.profiles.models import UserImageUpload
+        from django.db.models import Sum
+
+        filename = request.data.get('filename')
+        content_type = request.data.get('contentType')
+        size = request.data.get('size')
+
+        if not filename or not content_type or size is None:
+            return Response({"error": "filename, contentType, and size are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            size = int(size)
+        except ValueError:
+            return Response({"error": "size must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Basic mime check just in case, actual validation is on R2 or client
+        if not content_type.startswith('image/'):
+            return Response({"error": "Only images are allowed."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Enforce 500KB per image
+        if size > 500 * 1024:
+            return Response({"error": "Image size exceeds the 500KB limit."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check user's total quota (10MB limit)
+        user_uploads = UserImageUpload.objects.filter(user=request.user)
+        total_size = user_uploads.aggregate(total=Sum('file_size_bytes'))['total'] or 0
+
+        if total_size + size > 10 * 1024 * 1024:
+            return Response({"error": "Upload would exceed your 10MB total quota."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate unique filename
+        ext = filename.split('.')[-1] if '.' in filename else ''
+        unique_filename = f"images/{uuid.uuid4().hex}.{ext}"
+
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            region_name=settings.AWS_S3_REGION_NAME,
+            config=boto3.session.Config(signature_version='s3v4')
+        )
+
+        try:
+            # Using generate_presigned_url (PUT) for Cloudflare R2 compatibility
+            presigned_url = s3_client.generate_presigned_url(
+                'put_object',
+                Params={
+                    'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                    'Key': unique_filename,
+                    'ContentType': content_type,
+                },
+                ExpiresIn=3600
+            )
+            
+            # The public URL will depend on R2 setup, typically it's the bucket URL / key
+            # Assuming the bucket is public or we serve via custom domain. 
+            # We'll construct the fetch URL based on endpoint or a custom env var if provided.
+            public_domain = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', None)
+            if public_domain:
+                # Cloudflare public URLs map directly to the bucket root
+                public_domain = public_domain.rstrip('/')
+                public_url = f"{public_domain}/{unique_filename}"
+            else:
+                # Fallback to endpoint URL (path-style usually requires bucket name)
+                endpoint = settings.AWS_S3_ENDPOINT_URL.rstrip('/')
+                public_url = f"{endpoint}/{settings.AWS_STORAGE_BUCKET_NAME}/{unique_filename}"
+
+            # Record upload in database to track quota
+            UserImageUpload.objects.create(
+                user=request.user,
+                file_url=public_url,
+                file_size_bytes=size
+            )
+
+            return Response({
+                "uploadUrl": presigned_url,
+                "url": public_url
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request):
+        from authors.apps.profiles.models import UserImageUpload
+        from authors.apps.articles.tasks import delete_s3_image
+        
+        url_to_delete = request.data.get('url')
+        if not url_to_delete:
+            return Response({"error": "url is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            image_record = UserImageUpload.objects.get(user=request.user, file_url=url_to_delete)
+        except UserImageUpload.DoesNotExist:
+            return Response({"error": "Image not found or not owned by user."}, status=status.HTTP_404_NOT_FOUND)
+
+        if "images/" in url_to_delete:
+            key = "images/" + url_to_delete.split("images/")[-1]
+        else:
+            return Response({"error": "Invalid image URL format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Delete from S3 via Celery background task
+        delete_s3_image.delay(key)
+
+        # Delete from database to free up quota
+        image_record.delete()
+
+        return Response({"message": "Image deleted successfully."}, status=status.HTTP_200_OK)
