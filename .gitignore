@@ -98,3 +98,5 @@ db.sqlite3
 #vscode
 .vscode/
 .idea/
+
+.env
