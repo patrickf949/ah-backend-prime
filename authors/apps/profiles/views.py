@@ -74,11 +74,18 @@ class ProfileRetrieveAPIView(GenericAPIView):
 
     def get(self, request, username, *args, **kwargs):
         '''Function for getting a single users profile'''
-        follower = self.request.user.profile
+        try:
+            profile = Profile.objects.select_related('user').get(
+                user__username=username)
+        except Profile.DoesNotExist:
+            raise NotFound('A profile with this username was not found.')
 
-        profile = Profile.objects.select_related('user').get(
-            user__username=username)
-        following = str(profile.is_followed_by(follower))
+        if request.user.is_authenticated:
+            follower = request.user.profile
+            following = str(profile.is_followed_by(follower))
+        else:
+            following = "False"
+
         serializer = self.serializer_class(
             profile, context={'request': request})
         data = serializer.data
