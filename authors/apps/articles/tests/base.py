@@ -4,9 +4,10 @@ from authors.apps.authentication.models import User
 from authors.apps.authentication.tests.test_data import VALID_LOGIN_DATA, VALID_USER_DATA
 from authors.apps.authentication.tests.base import BaseTest
 from authors.apps.articles.tests.test_data import VALID_COMMENT, VALID_ARTICLE, VALID_ARTICLE_4
+from authors.apps.articles.tests.mocks import ExternalServicesMockMixin
 
 
-class ArticlesBaseTest(BaseTest):
+class ArticlesBaseTest(ExternalServicesMockMixin, BaseTest):
     """
     sets up a base class upon which all our test depends on
     """
