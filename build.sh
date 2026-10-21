@@ -9,5 +9,7 @@ pip install -r requirements.txt
 python manage.py collectstatic --no-input
 
 # Apply schema, then load demo content (idempotent — safe every deploy).
-python manage.py migrate --no-input
-python manage.py seed_articles
+if [ -n "$DATABASE_URL" ]; then
+    python manage.py migrate --no-input
+    python manage.py seed_articles
+fi
