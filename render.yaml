@@ -6,7 +6,7 @@ services:
     name: ah-backend-prime
     runtime: python
     plan: free
-    branch: main
+    branch: develop
     buildCommand: "./build.sh"
     startCommand: "gunicorn authors.wsgi:application"
     healthCheckPath: /api/v1/articles/latest/
@@ -61,7 +61,7 @@ services:
     name: ah-celery-worker
     runtime: python
     plan: free
-    branch: main
+    branch: develop
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A authors worker -l info"
     envVars:
