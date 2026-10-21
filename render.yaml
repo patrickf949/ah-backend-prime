@@ -4,11 +4,11 @@
 services:
   - type: web
     name: ah-backend-prime
-    runtime: python
+    runtime: docker
     plan: free
     branch: develop
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn authors.wsgi:application"
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/v1/articles/latest/
     envVars:
       - key: PYTHON_VERSION
@@ -59,11 +59,12 @@ services:
 
   - type: worker
     name: ah-celery-worker
-    runtime: python
+    runtime: docker
     plan: free
     branch: develop
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "celery -A authors worker -l info"
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: "celery -A authors worker -l info"
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.0
