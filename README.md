@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/patrickf949/ah-backend-prime.svg?branch=develop)](https://travis-ci.org/patrickf949/ah-backend-prime)
+[![tests](https://github.com/patrickf949/ah-backend-prime/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/patrickf949/ah-backend-prime/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/patrickf949/ah-backend-prime/badge.svg?branch=develop)](https://coveralls.io/github/patrickf949/ah-backend-prime?branch=develop)
 
 ---
