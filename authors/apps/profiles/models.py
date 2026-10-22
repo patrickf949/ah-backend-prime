@@ -38,6 +38,17 @@ class Profile(models.Model):
         """Returns True if profile is following us; False otherwise."""
         return self.followed_by.filter(pk=profile.pk).exists()
         
+class UserImageUpload(models.Model):
+    """
+    Track images uploaded by a user to enforce quotas.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='image_uploads')
+    file_url = models.URLField(max_length=500)
+    file_size_bytes = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.file_url}"
 
 
 @receiver(post_save, sender=User)

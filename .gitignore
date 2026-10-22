@@ -44,6 +44,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+coverage.lcov
 *,cover
 .hypothesis/
 
@@ -98,3 +99,5 @@ db.sqlite3
 #vscode
 .vscode/
 .idea/
+
+.env

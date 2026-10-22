@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from . import models
-from .models import Articles, ArticleRating, ReportArticle
+from .models import Articles, ArticleRating, Reaction, ReportArticle
 from authors.apps.profiles.serializers import ProfileSerializer
 
 
@@ -28,8 +28,10 @@ class ArticleSerializer(serializers.ModelSerializer):
         many=True, required=False, source='tagsList')
     likes = serializers.SerializerMethodField()
     dislikes = serializers.SerializerMethodField()
+    reactions = serializers.SerializerMethodField()
     reading_time = serializers.CharField(max_length=100, read_only=True)
     favorite_count = serializers.SerializerMethodField()
+    seo = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -46,8 +48,10 @@ class ArticleSerializer(serializers.ModelSerializer):
             'tagList',
             'likes',
             'dislikes',
+            'reactions',
             'reading_time',
-            'favorite_count'
+            'favorite_count',
+            'seo'
         )
         model = models.Articles
         read_only_fields = ['author', 'slug']
@@ -69,11 +73,31 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def get_likes(self, instance):
         '''Serializer method to return the number of likes of an article'''
-        return instance.votes.likes().count()
+        return instance.reactions.likes().count()
 
     def get_dislikes(self, instance):
         '''Serializer method to return the number of dislikes of an article'''
-        return instance.votes.dislikes().count()
+        return instance.reactions.dislikes().count()
+
+    def get_reactions(self, instance):
+        '''Return a per-emoji breakdown of reactions on the article'''
+        summary = instance.reactions.summary()
+        return {
+            'total': sum(summary.values()),
+            'breakdown': [
+                {
+                    'reaction': name,
+                    'emoji': emoji,
+                    'count': summary.get(name, 0)
+                }
+                for name, emoji in Reaction.REACTION_CHOICES
+            ]
+        }
+
+    def get_seo(self, instance):
+        '''Return SEO metadata for the article'''
+        from .seo import build_seo_meta
+        return build_seo_meta(instance)
 
     def create(self, validated_data):
         tags = self.initial_data['tags']
@@ -96,12 +120,43 @@ class ArticleSerializer(serializers.ModelSerializer):
         return obj.comment.__all__
 
 
+class ReactionSerializer(serializers.Serializer):
+    """
+    Serializer validating an emoji reaction request
+    """
+    reaction = serializers.ChoiceField(
+        choices=[name for name, _ in Reaction.REACTION_CHOICES],
+        error_messages={
+            'invalid_choice': (
+                'Invalid reaction. Valid reactions are: ' +
+                ', '.join(name for name, _ in Reaction.REACTION_CHOICES)
+            )
+        }
+    )
+
+
 class CommentSerializer(serializers.ModelSerializer):
     """
     Serializer for comment to an article
     """
     author = ProfileSerializer(required=False)
     article = ArticleSerializer(required=False)
+    reactions = serializers.SerializerMethodField()
+
+    def get_reactions(self, instance):
+        '''Return a per-emoji breakdown of reactions on the comment'''
+        summary = instance.reactions.summary()
+        return {
+            'total': sum(summary.values()),
+            'breakdown': [
+                {
+                    'reaction': name,
+                    'emoji': emoji,
+                    'count': summary.get(name, 0)
+                }
+                for name, emoji in Reaction.REACTION_CHOICES
+            ]
+        }
 
     class Meta:
         fields = '__all__'

@@ -56,7 +56,8 @@ class ActivateUserAPIView(GenericAPIView):
         token = kwargs.pop('token')
         user = jwt.decode(
             token,
-            SECRET_KEY
+            SECRET_KEY,
+            algorithms=['HS256']
         )
         activateUser = User.objects.filter(pk=user['id']).first()
         domain = os.environ.get('FRONT_END_URL', 'local')
@@ -114,6 +115,12 @@ class PassordResetRequestView(GenericAPIView):
         email = request.data.get('email')
         user = User.objects.filter(email=email).first()
         if user:
+            if not user.has_usable_password():
+                return Response(
+                    {'error': 'this account uses social sign-in and has '
+                              'no password to reset'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             token = user.generated_jwt_token()
             user.send_password_reset_link(request, token)
             return Response(
@@ -133,7 +140,7 @@ class PasswordResetView(GenericAPIView):
     def put(self, request, *args, **kwargs):
         token = kwargs.pop('token')
         try:
-            user = jwt.decode(token, SECRET_KEY)
+            user = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             return Response({'error': 'token expired'})
         user_detail = User.objects.get(pk=user['id'])
@@ -153,4 +160,3 @@ class PasswordResetView(GenericAPIView):
                             {"error": "password and confirm password fields do not match"},
                             status=status.HTTP_400_BAD_REQUEST
                             )
-

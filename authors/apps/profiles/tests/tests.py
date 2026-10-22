@@ -112,7 +112,7 @@ class TestUserProfile(BaseTestProfile):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_json_renderer(self):
-        self.assertEquals(isinstance
+        self.assertEqual(isinstance
                           (ProfileJSONRenderer().render({"data": "test"}),
                            dict), False)
 

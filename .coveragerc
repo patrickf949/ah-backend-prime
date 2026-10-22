@@ -1,8 +1,9 @@
 [report]
 omit = 
     */__init__.py
-    */
     */tests/*
+    */test/*
+    */management/*
     */authentication/backends.py
     */authentication/urls.py
     */profiles/urls.py

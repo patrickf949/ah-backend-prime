@@ -33,12 +33,12 @@ class TestPasswordTest(BaseTest):
             format='json'
         )
 
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
              status.HTTP_200_OK
              )
 
-        self.assertEquals(
+        self.assertEqual(
             response.data['message'],
             'password reset link has been sent to your email'
             )
@@ -55,12 +55,12 @@ class TestPasswordTest(BaseTest):
             format='json'
         )
 
-        self.assertEquals(
+        self.assertEqual(
             self.response.status_code,
             status.HTTP_400_BAD_REQUEST
                           )
 
-        self.assertEquals(
+        self.assertEqual(
             self.response.data['error'],
             'the email does not match any account'
             )
@@ -85,8 +85,8 @@ class TestPasswordTest(BaseTest):
             },
             format='json'
         )
-        self.assertEquals(self.response.status_code, status.HTTP_200_OK)
-        self.assertEquals(
+        self.assertEqual(self.response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             self.response.data['message'],
             'your password has been reset successfully'
             )
@@ -112,11 +112,11 @@ class TestPasswordTest(BaseTest):
             },
             format='json'
         )
-        self.assertEquals(
+        self.assertEqual(
             self.response.status_code,
             status.HTTP_400_BAD_REQUEST
             )
-        self.assertEquals(
+        self.assertEqual(
             self.response.data['error'],
             'password and confirm password fields do not match'
             )
@@ -137,7 +137,7 @@ class TestPasswordTest(BaseTest):
             format='json'
         )
 
-        self.assertEquals(
+        self.assertEqual(
             self.response.status_code,
             status.HTTP_400_BAD_REQUEST
                           )
