@@ -211,16 +211,26 @@ WORD_LENGTH = 5
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-# Cache setup for Redis
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+# Cache setup: use Redis when REDIS_URL is configured, otherwise fall back
+# to in-memory cache so single-container deployments work without extra services.
+REDIS_URL = os.environ.get('REDIS_URL')
+
+if REDIS_URL and not TESTING:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
         }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
 
 # AWS / Cloudflare R2 configurations
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -233,23 +243,13 @@ AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 
-# Celery Configuration Options
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-
-# Tests must never depend on a live Redis / Celery broker.
-# Use an in-memory cache and run celery tasks inline.
-if TESTING:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        }
+# Django 6.0 built-in Tasks framework configuration
+TASKS = {
+    'default': {
+        'BACKEND': (
+            'django.tasks.backends.immediate.ImmediateBackend'
+            if TESTING
+            else 'authors.apps.articles.tasks.ThreadPoolTaskBackend'
+        ),
     }
-    CELERY_BROKER_URL = 'memory://'
-    CELERY_RESULT_BACKEND = 'cache+memory://'
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
+}
