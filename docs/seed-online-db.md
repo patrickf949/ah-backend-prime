@@ -1,31 +1,34 @@
 # Seeding Demo Records
 
-The backend has a Faker-enabled seed command for creating realistic demo data.
+The backend has a seed command for creating realistic, natural-looking demo data.
 By default it creates:
 
-- 10 fixed demo articles
-- 12 Faker users with profiles
-- 60 Faker articles
-- 60 Faker comments
+- 16 realistic authors with profiles (`amelia_stone`, `devon_pierce`, `lina_okafor`, `patrick2`, `vanessa_brown`, `melissa_parrish`, `william_pena`, `daniel_walsh`, `matthew_smith`, `jamie_shaw`, `daniel_collins`, `hunter_fisher`, `jennifer_stanley`, `barbara_miller`, `roger_terrell`, `edward_dorsey`)
+- 11 fixed featured & custom articles (including `"The Best World Cup Song"` by `patrick2`)
+- 60 realistic engineering, architecture, and product articles with natural slugs
+- 60 realistic reader comments
 - tags, article/tag links, notification settings, and ORM-seeded reaction activity
+- automatically removes any legacy `faker_%` users or `faker-demo-%` articles
 
-## Local or Deployed App Command
+## Local or Hosted Database via `--db-url`
 
-Run this after migrations:
+To seed your local database (using `.env`):
 
 ```bash
 python manage.py seed_articles
 ```
 
-To choose a different article count:
+To seed a hosted PostgreSQL database directly by passing its connection URL:
 
 ```bash
-python manage.py seed_articles --faker-count 75
+python manage.py seed_articles --db-url "postgresql://user:password@host:5432/dbname?sslmode=require"
 ```
 
-The Faker records are deterministic. Re-running the command replaces records
-whose article slug starts with `faker-demo-`, so it does not keep duplicating
-the same seed articles.
+To choose a different extra article count:
+
+```bash
+python manage.py seed_articles --faker-count 60 --db-url "postgresql://..."
+```
 
 ## Generate SQL for an Online Database
 
@@ -44,18 +47,9 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/seed-online-db.sql
 If your provider has a web SQL console, paste the contents of
 `docs/seed-online-db.sql` and run it as one transaction.
 
-The SQL file contains the Faker users/profiles, 60 Faker articles, 60 comments,
-tags, article/tag links, and notification settings. Reaction activity is added
-only by the Django management command because it uses Django's generic-relation
-helpers.
-
 ## Seed Credentials
 
-Faker accounts use:
-
-- Email pattern: `faker1@authorshaven.app` through `faker12@authorshaven.app`
-- Password: `Faker@12345`
-
-Fixed demo accounts still use:
+Seeded author accounts use:
 
 - Password: `Demo@12345`
+
