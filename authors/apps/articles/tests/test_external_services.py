@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from authors.apps.articles.tasks import delete_s3_image
+from authors.apps.articles.tasks import ThreadPoolTaskBackend, delete_s3_image
 from authors.apps.articles.tests.base import ArticlesBaseTest
 from authors.apps.articles.tests.mocks import ExternalServicesMockMixin
 from authors.apps.articles.tests.test_data import VALID_ARTICLE
@@ -63,21 +63,21 @@ class ImageDeleteTest(ExternalServicesMockMixin, APITestCase):
         response = self.client.delete(self.upload_url, {'url': url}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.mock_delete_image_task.delay.assert_called_once_with('images/abc123.jpg')
+        self.mock_delete_image_task.enqueue.assert_called_once_with('images/abc123.jpg')
         self.assertFalse(UserImageUpload.objects.filter(file_url=url).exists())
 
     def test_delete_image_requires_url(self):
         response = self.client.delete(self.upload_url, {}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.mock_delete_image_task.delay.assert_not_called()
+        self.mock_delete_image_task.enqueue.assert_not_called()
 
     def test_delete_image_not_owned(self):
         response = self.client.delete(
             self.upload_url, {'url': 'https://cdn.example.com/images/x.jpg'}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.mock_delete_image_task.delay.assert_not_called()
+        self.mock_delete_image_task.enqueue.assert_not_called()
 
     def test_delete_image_invalid_url_format(self):
         url = 'https://cdn.example.com/other/x.jpg'
@@ -86,18 +86,18 @@ class ImageDeleteTest(ExternalServicesMockMixin, APITestCase):
         response = self.client.delete(self.upload_url, {'url': url}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.mock_delete_image_task.delay.assert_not_called()
+        self.mock_delete_image_task.enqueue.assert_not_called()
 
 
 class DeleteS3ImageTaskTest(APITestCase):
-    """The celery task removes the object from r2 and never raises."""
+    """The background task removes the object from r2 and never raises."""
 
     @patch('authors.apps.articles.tasks.boto3.client')
     def test_task_deletes_object(self, mock_client):
         s3 = MagicMock()
         mock_client.return_value = s3
 
-        delete_s3_image('images/abc123.jpg')
+        delete_s3_image.call('images/abc123.jpg')
 
         s3.delete_object.assert_called_once()
         self.assertEqual(s3.delete_object.call_args.kwargs['Key'], 'images/abc123.jpg')
@@ -107,4 +107,16 @@ class DeleteS3ImageTaskTest(APITestCase):
         mock_client.return_value.delete_object.side_effect = Exception('boom')
 
         # should not raise
-        delete_s3_image('images/abc123.jpg')
+        delete_s3_image.call('images/abc123.jpg')
+
+    @patch('authors.apps.articles.tasks.boto3.client')
+    def test_thread_pool_task_backend_enqueues_and_executes(self, mock_client):
+        s3 = MagicMock()
+        mock_client.return_value = s3
+
+        backend = ThreadPoolTaskBackend('default', {'OPTIONS': {'MAX_WORKERS': 1}})
+        task_result = backend.enqueue(delete_s3_image, ('images/abc123.jpg',), {})
+        backend.executor.shutdown(wait=True)
+
+        self.assertEqual(task_result.backend, 'default')
+        s3.delete_object.assert_called_once()
