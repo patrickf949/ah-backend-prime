@@ -4,12 +4,12 @@ from unittest.mock import patch
 class ExternalServicesMockMixin:
     """
     Mocks the external services touched by the article views so tests
-    never need a running Redis instance, Celery worker or Cloudflare R2.
+    never need a running Redis instance or Cloudflare R2.
 
     Exposes the mocks as attributes for assertions:
         self.mock_cache   -> django cache used for autosave drafts
         self.mock_boto3   -> boto3 module used for R2 presigned urls
-        self.mock_delete_image_task -> celery task for R2 image deletion
+        self.mock_delete_image_task -> background task for R2 image deletion
     """
 
     def setUp(self):
