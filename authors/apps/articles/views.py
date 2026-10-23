@@ -761,8 +761,8 @@ class UploadImageUrlView(APIView):
         else:
             return Response({"error": "Invalid image URL format."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Delete from S3 via Celery background task
-        delete_s3_image.delay(key)
+        # Delete from S3 via Django 6.0 background task
+        delete_s3_image.enqueue(key)
 
         # Delete from database to free up quota
         image_record.delete()
