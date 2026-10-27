@@ -13,7 +13,7 @@ def _unique_username(base):
     return candidate
 
 
-def register_social_user(provider, provider_user_id, email, username):
+def register_social_user(provider, provider_user_id, email, username, full_name='', image=''):
     '''Log in (or register) a user identified by a social provider.
 
     Identity is the (provider, provider_user_id) pair — no passwords are
@@ -45,6 +45,19 @@ def register_social_user(provider, provider_user_id, email, username):
             provider=provider,
             provider_user_id=str(provider_user_id)
         )
+
+    # Sync profile info (full_name, image) brought over from social profile
+    profile = getattr(user, 'profile', None)
+    if profile is not None:
+        updated = False
+        if full_name and not profile.full_name:
+            profile.full_name = full_name
+            updated = True
+        if image and not profile.image:
+            profile.image = image
+            updated = True
+        if updated:
+            profile.save()
 
     return {
         'email': user.email,

@@ -172,7 +172,24 @@ REST_FRAMEWORK = {
 
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
-    )
+    ),
+
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/minute',
+        'user': '1000/minute',
+        'auth': '10/minute',
+        'uploads': '20/minute',
+    } if not TESTING else {
+        'anon': None,
+        'user': None,
+        'auth': None,
+        'uploads': None,
+    }
 }
 
 SWAGGER_SETTINGS = {

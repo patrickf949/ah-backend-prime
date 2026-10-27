@@ -252,6 +252,29 @@ class SocialAuthRegistration(BaseTest):
                 ).exists()
             )
 
+    def test_facebook_token_with_picture_dict(self):
+        """Facebook token with nested dict for picture resolves correctly"""
+        class MockFacebookAuthDict:
+            @classmethod
+            def request(cls, auth_token):
+                return {
+                    'email': 'fbdict@email.com',
+                    'name': 'Facebook Dict User',
+                    'id': '99881122',
+                    'picture': {'data': {'url': 'https://example.com/fbdict.jpg'}}
+                }
+
+            def __call__(self, *args, **kwargs):
+                return self
+
+        with patch('authors.apps.social_auth.facebook_auth.facebook.GraphAPI', new_callable=MockFacebookAuthDict):
+            response = self.client.post(
+                '/api/v1/social/auth/facebook/', INVALID_FACEBOOK_TOKEN, format='json')
+            self.assertEqual(response.status_code, 200)
+            user = User.objects.get(email='fbdict@email.com')
+            self.assertEqual(user.profile.full_name, 'Facebook Dict User')
+            self.assertEqual(user.profile.image, 'https://example.com/fbdict.jpg')
+
     def test_social_registration_with_empty_email_field(self):
         """Tests for data from decoded token containing no email address"""
         response = register_social_user(
@@ -268,7 +291,32 @@ class SocialAuthRegistration(BaseTest):
             provider='google',
             provider_user_id=VALID_SOCIAL_DATA['id'],
             email=VALID_SOCIAL_DATA['email'],
-            username=VALID_SOCIAL_DATA['username']
+            username=VALID_SOCIAL_DATA['username'],
+            full_name='Patrick Fitz',
+            image='https://example.com/pfitz.jpg'
         )
         self.assertEqual(response['email'], 'test@email.com')
         self.assertIn('token', response)
+        user = User.objects.get(email='test@email.com')
+        self.assertEqual(user.profile.full_name, 'Patrick Fitz')
+        self.assertEqual(user.profile.image, 'https://example.com/pfitz.jpg')
+
+    def test_social_sync_via_google_endpoint(self):
+        """Google login populates full_name and image on user profile"""
+        class MockGoogleAuth:
+            @classmethod
+            def verify_oauth2_token(cls, token, request, audience=None):
+                return {
+                    'iss': 'accounts.google.com',
+                    'email': 'gprofile@email.com',
+                    'name': 'Google Fullname',
+                    'picture': 'https://example.com/google-pic.jpg',
+                    'sub': '9988776655'
+                }
+
+        with patch('authors.apps.social_auth.google_auth.id_token', new_callable=MockGoogleAuth):
+            response = self.client.post('/api/v1/social/auth/google/', INVALID_GOOGLE_TOKEN, format='json')
+            self.assertEqual(response.status_code, 200)
+            user = User.objects.get(email='gprofile@email.com')
+            self.assertEqual(user.profile.full_name, 'Google Fullname')
+            self.assertEqual(user.profile.image, 'https://example.com/google-pic.jpg')

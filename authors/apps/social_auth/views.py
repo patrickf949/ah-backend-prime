@@ -9,6 +9,7 @@ from authors.apps.social_auth.serializers import FacebookAuthSerializer, GoogleA
 class TwitterAuthView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = TwitterAuthSerializer
+    throttle_scope = 'auth'
 
     def post(self, request):
         user = request.data.get('user_token', {})
@@ -21,6 +22,7 @@ class TwitterAuthView(GenericAPIView):
 class FacebookAuthView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = FacebookAuthSerializer
+    throttle_scope = 'auth'
 
     def post(self, request):
         user = request.data.get('user_token', {})
@@ -36,6 +38,7 @@ class GoogleAuthView(GenericAPIView):
     """
     permission_classes = (AllowAny,)
     serializer_class = GoogleAuthSerializer
+    throttle_scope = 'auth'
 
     def post(self, request):
         """

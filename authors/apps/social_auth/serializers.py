@@ -18,11 +18,24 @@ class AuthSerializer(serializers.Serializer):
             )
         if not user_data.get('email'):
             return "Email address not provided!"
+
+        full_name = user_data.get('name') or ''
+        image = (
+            user_data.get('picture')
+            or user_data.get('profile_image_url_https')
+            or user_data.get('profile_image_url')
+            or ''
+        )
+        if isinstance(image, dict):
+            image = image.get('data', {}).get('url', '')
+
         return register_social_user(
             provider=self.provider,
             provider_user_id=provider_user_id,
             email=user_data['email'],
-            username=user_data.get('name') or user_data.get('screen_name')
+            username=user_data.get('name') or user_data.get('screen_name'),
+            full_name=full_name,
+            image=image
         )
 
 

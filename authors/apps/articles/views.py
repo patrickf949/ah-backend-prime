@@ -659,6 +659,7 @@ class AutoSaveView(APIView):
 
 class UploadImageUrlView(APIView):
     permission_classes = (IsAuthenticated,)
+    throttle_scope = 'uploads'
 
     def post(self, request):
         from authors.apps.profiles.models import UserImageUpload
