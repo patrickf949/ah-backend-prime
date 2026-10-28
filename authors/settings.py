@@ -228,26 +228,13 @@ WORD_LENGTH = 5
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-# Cache setup: use Redis when REDIS_URL is configured, otherwise fall back
-# to in-memory cache so single-container deployments work without extra services.
-REDIS_URL = os.environ.get('REDIS_URL')
-
-if REDIS_URL and not TESTING:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': REDIS_URL,
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            }
-        }
+# Cache setup: use in-memory LocMemCache so single-container deployments
+# work reliably without external services, network latency, or broker connection failures.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        }
-    }
+}
 
 # AWS / Cloudflare R2 configurations
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
